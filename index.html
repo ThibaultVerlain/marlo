@@ -977,7 +977,7 @@ tr:hover td{background:var(--accent-bg);cursor:pointer}
       <div class="fsep">Provenance & Coût de revient</div>
       <div class="fg">
         <div class="fr"><label>Source d'approvisionnement</label>
-          <select id="st-source" onchange="toggleSourceDetail()">
+          <select id="st-source">
             <option value="">— Sélectionner —</option>
             <option>Boutique officielle</option>
             <option>Outlet / Stock résiduel</option>
@@ -1515,8 +1515,6 @@ function toast(msg){ const t=document.getElementById('toast'); t.textContent=msg
 function openModal(id){ document.getElementById(id).classList.add('open'); }
 function closeModal(id){ document.getElementById(id).classList.remove('open'); }
 document.querySelectorAll('.ov').forEach(o=>o.addEventListener('click',e=>{ if(e.target===o) o.classList.remove('open'); }));
-function showLoading(){ document.getElementById('loading').style.display='flex'; }
-function hideLoading(){ document.getElementById('loading').style.display='none'; }
 function showErr(elId, msg){ const e=document.getElementById(elId); e.textContent=msg; e.style.display=''; }
 function hideMsg(elId){ document.getElementById(elId).style.display='none'; }
 
@@ -1549,7 +1547,14 @@ async function doLogin(){
   const {data,error} = await db.auth.signInWithPassword({email,password:pwd});
   btn.disabled=false; btn.textContent='Se connecter';
   if(error){ showErr('auth-error',error.message); return; }
-  await afterLogin(data.user);
+  // Connexion réussie — charger les données et lancer l'app
+  USER = data.user;
+  document.getElementById('auth-screen').style.display='none';
+  document.getElementById('loading').style.display='flex';
+  await loadAllData();
+  document.getElementById('loading').style.display='none';
+  if(SHOPS.length===0){ document.getElementById('onboarding').style.display='flex'; }
+  else{ showApp(); }
 }
 
 async function doSignup(){
@@ -1564,10 +1569,16 @@ async function doSignup(){
   btn.disabled=false; btn.textContent='Créer mon compte';
   if(error){ showErr('auth-error',error.message); return; }
   if(data.user && !data.session){
-    showErr('auth-success','Compte créé ! Vérifiez votre email pour confirmer votre compte.');
+    document.getElementById('auth-success').textContent='Compte créé ! Vérifiez votre email pour confirmer.';
     document.getElementById('auth-success').style.display='';
   } else if(data.session){
-    await afterLogin(data.user);
+    USER = data.user;
+    document.getElementById('auth-screen').style.display='none';
+    document.getElementById('loading').style.display='flex';
+    await loadAllData();
+    document.getElementById('loading').style.display='none';
+    if(SHOPS.length===0){ document.getElementById('onboarding').style.display='flex'; }
+    else{ showApp(); }
   }
 }
 
@@ -1588,18 +1599,6 @@ async function doLogout(){
   switchAuthTab('login');
 }
 
-async function afterLogin(user){
-  USER = user;
-  document.getElementById('auth-screen').style.display='none';
-  showLoading();
-  await loadAllData();
-  hideLoading();
-  if(SHOPS.length===0){
-    document.getElementById('onboarding').style.display='flex';
-  } else {
-    showApp();
-  }
-}
 
 // ═══════════════════════════════════════════════════════
 // DATA LOADING
@@ -1708,7 +1707,6 @@ function calcRevient(){
     md.style.background=marge<15?'var(--red-bg)':marge<30?'var(--amber-bg)':'var(--green-bg)';
   } else if(md){ md.textContent='—'; }
 }
-function toggleSourceDetail(){}
 
 // ═══════════════════════════════════════════════════════
 // ACHATS
@@ -2903,7 +2901,6 @@ const RZ_TYPE_COLORS = {
   'Boutique Outlet':'bw','Contact Maison':'bp','Autre':'bw'
 };
 
-function starRating(n){ return '★'.repeat(n)+'☆'.repeat(5-n); }
 
 function openReseauModal(){
   document.getElementById('m-reseau-title').textContent = 'Nouveau contact';
