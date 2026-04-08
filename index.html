@@ -2338,57 +2338,6 @@ function renderStock(){
     : `<tr><td colspan="10"><div class="empty"><div class="empty-icon">📦</div><div class="empty-text">Aucun article</div><button class="btn btn-g btn-sm" onclick="openArticleModal()">+ Ajouter</button></div></td></tr>`;
 }
 
-  document.getElementById('stock-kpis').innerHTML=`
-    <div class="kcard"><div class="kl">En stock</div><div class="kv">${avail.length}</div><div class="kd kmu">articles disponibles</div></div>
-    <div class="kcard"><div class="kl">Coût de revient total</div><div class="kv">${fmt(va)}</div><div class="kd kmu">investi</div></div>
-    <div class="kcard"><div class="kl">Valeur de vente</div><div class="kv">${fmt(vv)}</div><div class="kd kup">prix cibles</div></div>
-    <div class="kcard"><div class="kl">Marge moy. potentielle</div><div class="kv" style="color:${mArgMoy<15?'var(--red)':mArgMoy<30?'var(--amber)':'var(--green)'}">${mArgMoy}%</div><div class="kd kmu">sur prix de vente</div></div>`;
-
-  const authBadge=v=>{
-    if(!v||v==='Non vérifiée') return `<span style="font-size:9px;color:var(--amber);background:var(--amber-bg);border-radius:3px;padding:1px 5px">⚠ NV</span>`;
-    return `<span style="font-size:9px;color:var(--green);background:var(--green-bg);border-radius:3px;padding:1px 5px">✓ Auth</span>`;
-  };
-  const etatClass=e=>{
-    if(e?.includes('Neuf')) return 'bp';
-    if(e?.includes('Excellent')||e?.includes('Très bon')) return 'bs';
-    return 'bw';
-  };
-
-  document.getElementById('stock-tbody').innerHTML=items.length
-    ? items.map(a=>{
-        const revient=a.cout_revient||a.prix_achat||0;
-        const m=revient&&a.prix_vente?Math.round((a.prix_vente-revient)/a.prix_vente*100):0;
-        const pct=Math.min(100,Math.max(0,m));
-        const vendu=a.statut==='Vendu';
-        return `<tr onclick="editArticle('${a.id}')" style="${vendu?'opacity:.5':''}">
-          <td>
-            <div style="font-weight:500">${a.nom}${vendu?' <span style="font-size:9px;background:var(--ink-12);border-radius:3px;padding:1px 5px;color:var(--ink-40)">VENDU</span>':''}</div>
-            <div style="font-size:11px;color:var(--ink-40)">${[a.modele,a.couleur,a.ref].filter(Boolean).join(' · ')}</div>
-          </td>
-          <td style="font-weight:500">${a.marque||'—'}</td>
-          <td style="font-size:11px;color:var(--ink-40)">${a.categorie||'—'}</td>
-          <td>
-            <div style="font-size:11px;color:var(--ink-40)">${a.source||'—'}</div>
-            ${authBadge(a.authenticite)}
-          </td>
-          <td class="tnum">${revient?fmt(revient):'—'}</td>
-          <td class="tnum">${a.prix_vente?fmt(a.prix_vente):'—'}</td>
-          <td class="tnum">
-            <div style="display:flex;align-items:center;gap:5px;justify-content:flex-end">
-              <div class="sbar-w"><div class="sbar-f ${m<15?'low':''}" style="width:${pct}%"></div></div>
-              <span style="font-size:11px;font-weight:500;color:${m<15?'var(--red)':m<30?'var(--amber)':'var(--green)'}">${m}%</span>
-            </div>
-          </td>
-          <td><span class="badge ${etatClass(a.etat)}" style="font-size:9px">${(a.etat||'—').replace('Neuf avec étiquette','BNWT').replace('Neuf sans étiquette','BNWOT').replace('Excellent état','Exc.').replace('Très bon état','TBE').replace('Bon état','BE').replace('État correct','BC')}</span></td>
-          <td><div style="display:flex;gap:3px">
-            <button class="btn btn-gh btn-sm" onclick="event.stopPropagation();editArticle('${a.id}')">✎</button>
-            <button class="btn btn-r btn-sm" onclick="event.stopPropagation();deleteArticle('${a.id}')">✕</button>
-          </div></td>
-        </tr>`;
-      }).join('')
-    : `<tr><td colspan="9"><div class="empty"><div class="empty-icon">📦</div><div class="empty-text">Aucun article en stock</div><button class="btn btn-g btn-sm" onclick="openArticleModal()">+ Ajouter</button></div></td></tr>`;
-}
-
 function openArticleModal(){ document.getElementById('m-article-title').textContent='Ajouter un article'; document.getElementById('st-edit-id').value=''; ['st-nom','st-marque','st-pa','st-pv','st-ref','st-couleur','st-modele','st-notes','st-serial','st-frais-transport','st-frais-auth','st-frais-restau','st-frais-autres','st-source-contact','st-accessoires','st-pv-min'].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=''; }); document.getElementById('st-date-achat').value=new Date().toISOString().split('T')[0]; const ss=document.getElementById('st-statut');if(ss)ss.value='Disponible'; populateSelects(); openModal('m-article'); }
 
 async function saveArticle(){
