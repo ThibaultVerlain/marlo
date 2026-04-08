@@ -292,13 +292,13 @@ tr:hover td{background:var(--accent-bg);cursor:pointer}
 <body>
 
 <!-- LOADING -->
-<div id="loading">
+<div id="loading" style="display:none">
   <div class="loading-logo">Marlo</div>
   <div class="loading-dot"><span></span><span></span><span></span></div>
 </div>
 
 <!-- AUTH SCREEN -->
-<div id="auth-screen" style="display:none">
+<div id="auth-screen">
   <div class="auth-card">
     <div class="auth-header">
       <div class="auth-logo">Marlo</div>
@@ -3751,48 +3751,38 @@ function dlCSV(rows,filename){ const csv=rows.map(r=>r.map(c=>`"${c??''}"`).join
 // BOOT
 // ═══════════════════════════════════════════════════════
 function showAuth(){
-  hideLoading();
+  document.getElementById('loading').style.display='none';
   document.getElementById('auth-screen').style.display='flex';
   document.getElementById('app').style.display='none';
   document.getElementById('onboarding').style.display='none';
 }
 
 async function boot(){
-  // Si ouvert en file:// → aller direct à la connexion sans attendre
-  if(location.protocol === 'file:'){
-    showAuth();
-    // Toujours écouter les changements d'auth
-    setupAuthListener();
-    return;
-  }
-
-  // Timeout court — 2s max, pas 8s
-  const hardFallback = setTimeout(showAuth, 2500);
-
+  // Tenter de récupérer une session existante (utilisateur déjà connecté)
+  // Si ça rate ou timeout → l'auth-screen est déjà visible, rien à faire
   try {
     const result = await Promise.race([
       db.auth.getSession(),
-      new Promise((_,rej) => setTimeout(()=>rej(new Error('timeout')), 2000))
+      new Promise((_,rej) => setTimeout(()=>rej(new Error('timeout')), 3000))
     ]);
 
-    clearTimeout(hardFallback);
     const session = result?.data?.session;
-
     if(session){
       USER = session.user;
+      // Utilisateur déjà connecté — cacher auth, montrer loading pendant chargement
+      document.getElementById('auth-screen').style.display = 'none';
+      document.getElementById('loading').style.display = 'flex';
       await loadAllData();
-      hideLoading();
+      document.getElementById('loading').style.display = 'none';
       if(SHOPS.length === 0){
         document.getElementById('onboarding').style.display = 'flex';
       } else {
         showApp();
       }
-    } else {
-      showAuth();
     }
+    // Pas de session → auth-screen déjà visible, on ne fait rien
   } catch(e){
-    clearTimeout(hardFallback);
-    showAuth();
+    // Timeout ou erreur → auth-screen déjà visible, on ne fait rien
   }
 
   setupAuthListener();
@@ -3804,9 +3794,9 @@ function setupAuthListener(){
       if(!USER){
         USER = session.user;
         document.getElementById('auth-screen').style.display = 'none';
-        showLoading();
+        document.getElementById('loading').style.display = 'flex';
         await loadAllData();
-        hideLoading();
+        document.getElementById('loading').style.display = 'none';
         if(SHOPS.length === 0){
           document.getElementById('onboarding').style.display = 'flex';
         } else {
