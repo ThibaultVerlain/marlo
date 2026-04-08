@@ -284,9 +284,29 @@ tr:hover td{background:var(--accent-bg);cursor:pointer}
 .inv-table{width:100%;border-collapse:collapse;margin:14px 0;font-size:11.5px}
 .inv-table th{background:var(--ink);color:#F2ECD8;padding:6px 9px;font-weight:400;letter-spacing:.07em;text-align:left}
 .inv-table td{padding:6px 9px;border-bottom:.5px solid var(--border)}
-::-webkit-scrollbar{width:4px;height:4px}
-::-webkit-scrollbar-track{background:transparent}
-::-webkit-scrollbar-thumb{background:var(--accent-border);border-radius:3px}
+/* ── BADGES NOTIFICATIONS SIDEBAR ── */
+.ni{position:relative}
+.nb{position:absolute;right:10px;top:50%;transform:translateY(-50%);min-width:16px;height:16px;border-radius:8px;background:var(--red);color:#fff;font-size:9px;font-weight:600;display:flex;align-items:center;justify-content:center;padding:0 4px;line-height:1;pointer-events:none}
+/* ── CLOCHE NOTIFICATIONS TOPBAR ── */
+.notif-btn{position:relative;width:30px;height:30px;border-radius:7px;border:.5px solid var(--border);background:transparent;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .15s}
+.notif-btn:hover{background:var(--accent-bg)}
+.notif-btn svg{width:14px;height:14px;stroke:var(--ink-70);fill:none;stroke-width:1.4;stroke-linecap:round;stroke-linejoin:round}
+.notif-dot{position:absolute;top:4px;right:4px;width:7px;height:7px;border-radius:50%;background:var(--red);border:1.5px solid var(--surface);display:none}
+.notif-dot.has{display:block}
+.notif-panel{position:absolute;top:calc(100% + 8px);right:0;width:320px;background:var(--surface);border:.5px solid var(--border-s);border-radius:12px;box-shadow:0 8px 32px rgba(0,0,0,.14);z-index:500;display:none;overflow:hidden}
+.notif-panel.open{display:block}
+.notif-header{padding:12px 16px;border-bottom:.5px solid var(--border);display:flex;justify-content:space-between;align-items:center}
+.notif-title{font-size:12px;font-weight:500;letter-spacing:.06em;color:var(--ink)}
+.notif-clear{font-size:10px;color:var(--accent);cursor:pointer;background:none;border:none;font-family:inherit;letter-spacing:.04em}
+.notif-item{display:flex;align-items:flex-start;gap:10px;padding:10px 16px;border-bottom:.5px solid var(--ink-12);cursor:pointer;transition:background .15s}
+.notif-item:hover{background:var(--accent-bg)}
+.notif-item:last-child{border-bottom:none}
+.notif-icon{width:28px;height:28px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0;margin-top:1px}
+.notif-body{flex:1;min-width:0}
+.notif-body-title{font-size:12.5px;font-weight:500;color:var(--ink);margin-bottom:2px}
+.notif-body-sub{font-size:11px;color:var(--ink-40)}
+.notif-empty{padding:24px;text-align:center;font-size:12px;color:var(--ink-40)}
+.topbar-r{position:relative}
 </style>
 </head>
 <body>
@@ -443,7 +463,7 @@ tr:hover td{background:var(--accent-bg);cursor:pointer}
     </div>
     <div class="ni" onclick="nav('stock',this)" data-sec="stock">
       <svg viewBox="0 0 14 14" fill="none"><rect x=".5" y="8.5" width="13" height="4.5" rx=".8" stroke="currentColor" stroke-width="1.1"/><rect x="2" y="5" width="10" height="4" rx=".8" stroke="currentColor" stroke-width="1.1"/><rect x="3.5" y="2" width="7" height="3.5" rx=".8" stroke="currentColor" stroke-width="1.1"/></svg>
-      Stock
+      Stock<span class="nb" id="nb-stock" style="display:none"></span>
     </div>
     <div class="ni" onclick="nav('ventes',this)" data-sec="ventes">
       <svg viewBox="0 0 14 14" fill="none"><path d="M1.5 10.5L5 6.5l3 3L12.5 3" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round"/></svg>
@@ -451,11 +471,11 @@ tr:hover td{background:var(--accent-bg);cursor:pointer}
     </div>
     <div class="ni" onclick="nav('commandes',this)" data-sec="commandes">
       <svg viewBox="0 0 14 14" fill="none"><rect x=".5" y=".5" width="13" height="13" rx="1.5" stroke="currentColor" stroke-width="1.1"/><path d="M4 4.5h6M4 7h6M4 9.5h3" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/></svg>
-      Commandes
+      Commandes<span class="nb" id="nb-commandes" style="display:none"></span>
     </div>
     <div class="ni" onclick="nav('achats',this)" data-sec="achats">
       <svg viewBox="0 0 14 14" fill="none"><path d="M1 2h1.5l2 7h6.5L13 5H5" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round"/><circle cx="6" cy="11.5" r="1" stroke="currentColor" stroke-width="1.1"/><circle cx="10.5" cy="11.5" r="1" stroke="currentColor" stroke-width="1.1"/></svg>
-      Achats
+      Achats<span class="nb" id="nb-achats" style="display:none"></span>
     </div>
     <div class="ni" onclick="nav('clients',this)" data-sec="clients">
       <svg viewBox="0 0 14 14" fill="none"><circle cx="7" cy="4.5" r="2.5" stroke="currentColor" stroke-width="1.1"/><path d="M1.5 12.5c0-2.76 2.462-4.5 5.5-4.5s5.5 1.74 5.5 4.5" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/></svg>
@@ -463,11 +483,11 @@ tr:hover td{background:var(--accent-bg);cursor:pointer}
     </div>
     <div class="ni" onclick="nav('sourcing',this)" data-sec="sourcing">
       <svg viewBox="0 0 14 14" fill="none"><circle cx="6" cy="6" r="4" stroke="currentColor" stroke-width="1.1"/><path d="M10 10l3 3" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/><path d="M4 6h4M6 4v4" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/></svg>
-      Sourcing
+      Sourcing<span class="nb" id="nb-sourcing" style="display:none"></span>
     </div>
     <div class="ni" onclick="nav('ps',this)" data-sec="ps">
       <svg viewBox="0 0 14 14" fill="none"><path d="M2 11c0-2.5 2-4 5-4s5 1.5 5 4" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/><circle cx="7" cy="4" r="2.5" stroke="currentColor" stroke-width="1.1"/><path d="M10.5 2.5l1 1M11.5 5h1" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/></svg>
-      Personal Shopping
+      Personal Shopping<span class="nb" id="nb-ps" style="display:none"></span>
     </div>
     <div class="ni" onclick="nav('reseau',this)" data-sec="reseau">
       <svg viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="2" stroke="currentColor" stroke-width="1.1"/><circle cx="2" cy="3" r="1.5" stroke="currentColor" stroke-width="1.1"/><circle cx="12" cy="3" r="1.5" stroke="currentColor" stroke-width="1.1"/><circle cx="2" cy="11" r="1.5" stroke="currentColor" stroke-width="1.1"/><circle cx="12" cy="11" r="1.5" stroke="currentColor" stroke-width="1.1"/><path d="M3.2 4L5.5 5.8M8.5 5.8L10.8 4M3.2 10L5.5 8.2M8.5 8.2L10.8 10" stroke="currentColor" stroke-width="1.1"/></svg>
@@ -522,6 +542,20 @@ tr:hover td{background:var(--accent-bg);cursor:pointer}
   <div class="topbar">
     <div class="topbar-title" id="page-title">Dashboard</div>
     <div class="topbar-r">
+      <!-- Cloche notifications -->
+      <div style="position:relative">
+        <button class="notif-btn" onclick="toggleNotifPanel()" id="notif-btn" title="Notifications">
+          <svg viewBox="0 0 14 14"><path d="M7 1.5a4 4 0 014 4v2.5l1 1.5H2L3 8V5.5a4 4 0 014-4z"/><path d="M5.5 11.5a1.5 1.5 0 003 0"/></svg>
+          <div class="notif-dot" id="notif-dot"></div>
+        </button>
+        <div class="notif-panel" id="notif-panel">
+          <div class="notif-header">
+            <span class="notif-title">Notifications</span>
+            <button class="notif-clear" onclick="clearNotifs()">Tout marquer lu</button>
+          </div>
+          <div id="notif-list"></div>
+        </div>
+      </div>
       <div class="shop-pill" id="shop-pill">—</div>
     </div>
   </div>
@@ -1863,7 +1897,7 @@ async function deleteAchat(id){
   if(!confirm('Supprimer cet achat ?'))return;
   try{await db.from('achats').delete().eq('id',id);}catch(e){}
   ACHATS_DB=ACHATS_DB.filter(a=>a.id!==id);
-  renderAchats();toast('Achat supprimé');
+  renderAchats();toast('Achat supprimé');updateNotifs();
 }
 function exportAchatsCSV(){
   const h=['Nom','Marque','Catégorie','Source','Vendeur','Prix achat','Frais transport','Frais autres','Coût total','Paiement','Authenticité','Statut','Date'];
@@ -1965,7 +1999,7 @@ async function saveCommande(){
   }
 
   closeModal('m-commande');renderCommandes();populateSelects();
-  toast(editId?'Commande mise à jour':'Commande créée');
+  toast(editId?'Commande mise à jour':'Commande créée'); updateNotifs();
 }
 
 function renderCommandes(){
@@ -2041,7 +2075,7 @@ async function deleteCommande(id){
   if(!confirm('Supprimer cette commande ?'))return;
   try{await db.from('commandes').delete().eq('id',id);}catch(e){}
   COMMANDES=COMMANDES.filter(c=>c.id!==id);
-  renderCommandes();toast('Commande supprimée');
+  renderCommandes();toast('Commande supprimée');updateNotifs();
 }
 
 // ═══════════════════════════════════════════════════════
@@ -2056,6 +2090,7 @@ function showApp(){
   updateLegalNav();
   populateSelects();
   renderDash();
+  updateNotifs();
   const today=new Date().toISOString().split('T')[0];
   ['v-date','f-date'].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=today; });
   const ec=new Date(); ec.setDate(ec.getDate()+30);
@@ -2089,6 +2124,131 @@ function populateSelects(){
 // ═══════════════════════════════════════════════════════
 // NAVIGATION
 // ═══════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════
+// NOTIFICATIONS
+// ═══════════════════════════════════════════════════════
+let readNotifIds = new Set(JSON.parse(localStorage.getItem('marlo-read-notifs')||'[]'));
+
+function computeNotifs(){
+  const now = new Date();
+  const notifs = [];
+
+  // Commandes — nouvelles + litiges
+  const cmdNew = filterByShop(COMMANDES).filter(c=>c.statut==='Nouvelle commande');
+  const cmdLitige = filterByShop(COMMANDES).filter(c=>c.statut==='Litige ouvert');
+  const cmdRetour = filterByShop(COMMANDES).filter(c=>c.statut==='Retour demandé');
+  if(cmdNew.length) notifs.push({id:'cmd-new',level:'amber',icon:'📦',title:`${cmdNew.length} nouvelle${cmdNew.length>1?'s':''} commande${cmdNew.length>1?'s':''}`,sub:'À préparer et expédier',nav:'commandes'});
+  if(cmdLitige.length) notifs.push({id:'cmd-litige',level:'red',icon:'⚠️',title:`${cmdLitige.length} litige${cmdLitige.length>1?'s':''} ouvert${cmdLitige.length>1?'s':''}`,sub:'Action requise',nav:'commandes'});
+  if(cmdRetour.length) notifs.push({id:'cmd-retour',level:'red',icon:'↩️',title:`${cmdRetour.length} retour${cmdRetour.length>1?'s':''} demandé${cmdRetour.length>1?'s':''}`,sub:'À traiter',nav:'commandes'});
+
+  // Achats — en attente de réception
+  const acAttente = filterByShop(ACHATS_DB).filter(a=>a.statut==='En attente de réception');
+  if(acAttente.length) notifs.push({id:'ac-attente',level:'blue',icon:'🛍️',title:`${acAttente.length} achat${acAttente.length>1?'s':''} en attente de réception`,sub:'À réceptionner',nav:'achats'});
+
+  // Achats — litiges
+  const acLitige = filterByShop(ACHATS_DB).filter(a=>a.statut==='Litige ouvert');
+  if(acLitige.length) notifs.push({id:'ac-litige',level:'red',icon:'⚠️',title:`${acLitige.length} litige${acLitige.length>1?'s':''} achat`,sub:'À résoudre',nav:'achats'});
+
+  // Sourcing — urgents + échéances dépassées
+  const srcUrgent = SOURCING_DB.filter(s=>s.urgence==='Haute'&&!['Acheté','Annulé'].includes(s.statut));
+  const srcOverdue = SOURCING_DB.filter(s=>s.echeance&&new Date(s.echeance)<now&&!['Acheté','Annulé'].includes(s.statut));
+  if(srcUrgent.length) notifs.push({id:'src-urgent',level:'red',icon:'🔍',title:`${srcUrgent.length} sourcing urgent${srcUrgent.length>1?'s':''}`,sub:'Priorité haute',nav:'sourcing'});
+  if(srcOverdue.length) notifs.push({id:'src-overdue',level:'red',icon:'⏰',title:`${srcOverdue.length} sourcing en retard`,sub:'Échéance dépassée',nav:'sourcing'});
+
+  // Stock dormant
+  const dormant = filterByShop(STOCK).filter(a=>a.statut!=='Vendu'&&a.date_achat&&(now-new Date(a.date_achat))/(1000*60*60*24)>30);
+  const prefs = getPrefs();
+  const dormantSeuil = prefs.dormant_jours||30;
+  const dormantPlus = filterByShop(STOCK).filter(a=>a.statut!=='Vendu'&&a.date_achat&&(now-new Date(a.date_achat))/(1000*60*60*24)>dormantSeuil);
+  if(dormantPlus.length>=3) notifs.push({id:'stock-dormant',level:'amber',icon:'⏱',title:`${dormantPlus.length} articles en stock +${dormantSeuil}j`,sub:'Capital immobilisé',nav:'stock'});
+
+  // PS — missions sans mise à jour depuis 7j
+  const psStale = PS_DB.filter(p=>{
+    if(['Livrée','Annulée'].includes(p.statut)) return false;
+    const last = p.updated_at||p.created_at;
+    if(!last) return false;
+    return (now-new Date(last))/(1000*60*60*24)>7;
+  });
+  if(psStale.length) notifs.push({id:'ps-stale',level:'amber',icon:'🛒',title:`${psStale.length} mission${psStale.length>1?'s':''} PS sans mise à jour`,sub:'Depuis +7 jours',nav:'ps'});
+
+  // Commissions PS à encaisser
+  const psComm = PS_DB.filter(p=>p.statut==='Achetée'&&p.commission>0);
+  if(psComm.length) notifs.push({id:'ps-comm',level:'green',icon:'💶',title:`${psComm.length} commission${psComm.length>1?'s':''} à encaisser`,sub:psComm.reduce((s,p)=>s+(p.commission||0),0)+' € — missions livrées',nav:'ps'});
+
+  return notifs;
+}
+
+function setBadge(id, count){
+  const el = document.getElementById('nb-'+id);
+  if(!el) return;
+  if(count>0){ el.textContent=count>99?'99+':count; el.style.display='flex'; }
+  else { el.style.display='none'; }
+}
+
+function updateNotifs(){
+  const notifs = computeNotifs();
+  const unread = notifs.filter(n=>!readNotifIds.has(n.id));
+
+  // Badges sidebar
+  setBadge('commandes', filterByShop(COMMANDES).filter(c=>['Nouvelle commande','Litige ouvert','Retour demandé'].includes(c.statut)).length);
+  setBadge('achats', filterByShop(ACHATS_DB).filter(a=>['En attente de réception','Litige ouvert'].includes(a.statut)).length);
+  setBadge('sourcing', SOURCING_DB.filter(s=>s.urgence==='Haute'&&!['Acheté','Annulé'].includes(s.statut)).length);
+  setBadge('ps', PS_DB.filter(p=>!['Livrée','Annulée'].includes(p.statut)&&p.updated_at&&(new Date()-new Date(p.updated_at))/(1000*60*60*24)>7).length);
+  const dormantCount = filterByShop(STOCK).filter(a=>a.statut!=='Vendu'&&a.date_achat&&(new Date()-new Date(a.date_achat))/(1000*60*60*24)>30).length;
+  setBadge('stock', dormantCount);
+
+  // Cloche
+  const dot = document.getElementById('notif-dot');
+  if(dot) dot.classList.toggle('has', unread.length>0);
+
+  // Panneau
+  const list = document.getElementById('notif-list');
+  if(!list) return;
+  if(notifs.length===0){
+    list.innerHTML=`<div class="notif-empty">Tout est à jour ✓</div>`;
+    return;
+  }
+  const levelBg = {red:'var(--red-bg)',amber:'var(--amber-bg)',blue:'var(--blue-bg)',green:'var(--green-bg)'};
+  list.innerHTML = notifs.map(n=>`
+    <div class="notif-item${readNotifIds.has(n.id)?' notif-read':''}" onclick="goNotif('${n.nav}','${n.id}')">
+      <div class="notif-icon" style="background:${levelBg[n.level]||'var(--ink-12)'}">${n.icon}</div>
+      <div class="notif-body">
+        <div class="notif-body-title" style="${readNotifIds.has(n.id)?'opacity:.5':'font-weight:500'}">${n.title}</div>
+        <div class="notif-body-sub">${n.sub}</div>
+      </div>
+      ${!readNotifIds.has(n.id)?`<div style="width:6px;height:6px;border-radius:50%;background:var(--accent);flex-shrink:0;margin-top:5px"></div>`:''}
+    </div>`).join('');
+}
+
+function goNotif(navId, notifId){
+  readNotifIds.add(notifId);
+  localStorage.setItem('marlo-read-notifs', JSON.stringify([...readNotifIds]));
+  document.getElementById('notif-panel').classList.remove('open');
+  nav(navId, document.querySelector(`[data-sec="${navId}"]`));
+  updateNotifs();
+}
+
+function toggleNotifPanel(){
+  document.getElementById('notif-panel').classList.toggle('open');
+  updateNotifs();
+}
+
+function clearNotifs(){
+  const notifs = computeNotifs();
+  notifs.forEach(n=>readNotifIds.add(n.id));
+  localStorage.setItem('marlo-read-notifs', JSON.stringify([...readNotifIds]));
+  updateNotifs();
+}
+
+// Fermer panneau si clic extérieur
+document.addEventListener('click', e=>{
+  const panel = document.getElementById('notif-panel');
+  const btn = document.getElementById('notif-btn');
+  if(panel && !panel.contains(e.target) && btn && !btn.contains(e.target)){
+    panel.classList.remove('open');
+  }
+});
+
 const TITLES={dashboard:'Dashboard',stock:'Stock & Inventaire',ventes:'Ventes',commandes:'Commandes',achats:'Achats',clients:'Clients',sourcing:'Sourcing',ps:'Personal Shopping',reseau:'Réseau',factures:'Factures',compta:'Comptabilité',parametres:'Paramètres'};
 const SECS=['dashboard','stock','ventes','commandes','achats','clients','sourcing','ps','reseau','factures','compta','parametres'];
 
@@ -3113,7 +3273,7 @@ async function savePS(){
 
   closeModal('m-ps');
   renderPS();
-  toast(editId ? 'Mission mise à jour' : 'Mission créée');
+  toast(editId ? 'Mission mise à jour' : 'Mission créée'); updateNotifs();
 }
 
 function renderPS(){
