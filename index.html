@@ -1696,7 +1696,7 @@ document.querySelectorAll('.ov').forEach(o=>o.addEventListener('click',e=>{ if(e
 function showErr(elId, msg){ const e=document.getElementById(elId); e.textContent=msg; e.style.display=''; }
 function hideMsg(elId){ document.getElementById(elId).style.display='none'; }
 
-function clientVentes(c){ return VENTES.filter(v=>v.client_id===c.id); }
+function clientVentes(c){ return VENTES.filter(v=>v.client_id===c.id).sort((a,b)=>new Date(b.date||0)-new Date(a.date||0)); }
 function clientCA(c){ return clientVentes(c).reduce((s,v)=>s+(v.montant||0),0); }
 
 function filterByShop(arr, shopId=null){
@@ -2195,18 +2195,22 @@ async function saveCommande(){
     if(!error&&data)saved=data;
   }catch(e){}
 
-  if(editId){const i=COMMANDES.findIndex(c=>c.id===editId);if(i>=0)COMMANDES[i]={...COMMANDES[i],...saved};}
-  else COMMANDES.unshift(saved);
-
-  // Mark stock as sold if status is favorable
-  const sold=['Livrée','Paiement reçu'];
+  if(editId){
+    // Lire le statut AVANT mise à jour pour wasPaid
+    const prevStatut = COMMANDES.find(c=>c.id===editId)?.statut||'';
+    const i=COMMANDES.findIndex(c=>c.id===editId);
+    if(i>=0) COMMANDES[i]={...COMMANDES[i],...saved};
+    var wasPaid = ['Paiement reçu','Livrée'].includes(prevStatut);
+  } else {
+    COMMANDES.unshift(saved);
+    var wasPaid = false;
+  }
   if(stockId&&sold.includes(obj.statut)){
     try{await db.from('stock').update({statut:'Vendu'}).eq('id',stockId);}catch(e){}
     const a=STOCK.find(x=>x.id===stockId);if(a)a.statut='Vendu';
   }
 
   // Si paiement reçu pour la première fois → créer automatiquement dans Ventes
-  const wasPaid = editId ? ['Paiement reçu','Livrée'].includes(COMMANDES.find(c=>c.id===editId)?.statut||'') : false;
   if(obj.statut==='Paiement reçu' && !wasPaid){
     const venteExists = VENTES.find(v=>v.commande_id===saved.id);
     if(!venteExists){
@@ -3229,7 +3233,7 @@ async function saveVente(){
   if(error){ toast('Erreur: '+error.message); return; }
   VENTES.unshift(data);
   if(articleSel){ await db.from('stock').update({statut:'Vendu'}).eq('id',articleSel); const a=STOCK.find(x=>x.id===articleSel); if(a) a.statut='Vendu'; }
-  closeModal('m-vente'); renderVentes(); populateSelects(); toast('Vente enregistrée');
+  closeModal('m-vente'); renderVentes(); populateSelects(); updateNotifs(); toast('Vente enregistrée');
 }
 
 async function deleteVente(id){
@@ -3382,13 +3386,14 @@ async function addClientNote(id){
 // ═══════════════════════════════════════════════════════
 function openFactureModal(){
   const prefs = getPrefs();
+  // Reset champs
+  ['f-ht','f-tva-amt','f-ttc'].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=''; });
+  ['f-objet','f-mentions'].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=''; });
   const tvaEl = document.getElementById('f-tva-rate');
   if(tvaEl) tvaEl.value = prefs.tva_defaut||20;
-  // Reset other fields
-  ['f-ht','f-tva-amt','f-ttc','f-objet','f-mentions'].forEach(id=>{
-    const el=document.getElementById(id); if(el&&el.tagName!=='INPUT'||el?.type!=='number') { if(el) el.value=el.id==='f-tva-rate'?prefs.tva_defaut||20:''; }
-  });
   document.getElementById('f-date').value = new Date().toISOString().split('T')[0];
+  const echeance = new Date(); echeance.setDate(echeance.getDate()+30);
+  const fEch = document.getElementById('f-echeance'); if(fEch) fEch.value = echeance.toISOString().split('T')[0];
   populateSelects(); checkFactShop(); openModal('m-facture');
 }
 function calcTVA(){ const ht=parseFloat(document.getElementById('f-ht').value)||0; const r=parseFloat(document.getElementById('f-tva-rate').value)||20; const tva=Math.round(ht*r)/100; document.getElementById('f-tva-amt').value=tva.toFixed(2); document.getElementById('f-ttc').value=(ht+tva).toFixed(2); }
@@ -4424,8 +4429,9 @@ function getVentesCompta(){
 
 function getAchatsCompta(){
   const from=getComptaPeriod();
+  const p=document.getElementById('compta-period')?.value||'month';
   return filterByShop(ACHATS_DB).filter(a=>{
-    if(!a.date_achat) return true;
+    if(!a.date_achat) return p==='all'; // sans date : seulement si "toute la période"
     return new Date(a.date_achat)>=from;
   });
 }
