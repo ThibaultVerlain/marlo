@@ -447,22 +447,22 @@ tfoot tr td{padding:8px 10px;font-size:12px;font-weight:500;border-top:.5px soli
       <div id="auth-success" class="auth-success"></div>
       <!-- Login -->
       <div id="form-login">
-        <div class="fr"><label>Email</label><input id="login-email" type="email" placeholder="votre@email.com"></div>
-        <div class="fr"><label>Mot de passe</label><input id="login-pwd" type="password" placeholder="••••••••"></div>
+        <div class="fr"><label>Email</label><input id="login-email" type="email" placeholder="votre@email.com" onkeydown="if(event.key==='Enter')doLogin()"></div>
+        <div class="fr"><label>Mot de passe</label><input id="login-pwd" type="password" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()"></div>
         <button class="btn btn-g" style="width:100%;justify-content:center;padding:9px" onclick="doLogin()" id="btn-login">Se connecter</button>
         <div style="text-align:center;margin-top:12px"><button class="btn btn-gh btn-sm" onclick="switchAuthTab('reset')">Mot de passe oublié ?</button></div>
       </div>
       <!-- Signup -->
       <div id="form-signup" style="display:none">
-        <div class="fr"><label>Email</label><input id="signup-email" type="email" placeholder="votre@email.com"></div>
-        <div class="fr"><label>Mot de passe</label><input id="signup-pwd" type="password" placeholder="8 caractères minimum"></div>
-        <div class="fr"><label>Confirmer le mot de passe</label><input id="signup-pwd2" type="password" placeholder="••••••••"></div>
+        <div class="fr"><label>Email</label><input id="signup-email" type="email" placeholder="votre@email.com" onkeydown="if(event.key==='Enter')doSignup()"></div>
+        <div class="fr"><label>Mot de passe</label><input id="signup-pwd" type="password" placeholder="8 caractères minimum" onkeydown="if(event.key==='Enter')doSignup()"></div>
+        <div class="fr"><label>Confirmer le mot de passe</label><input id="signup-pwd2" type="password" placeholder="••••••••" onkeydown="if(event.key==='Enter')doSignup()"></div>
         <button class="btn btn-g" style="width:100%;justify-content:center;padding:9px" onclick="doSignup()" id="btn-signup">Créer mon compte</button>
       </div>
       <!-- Reset -->
       <div id="form-reset" style="display:none">
         <p style="font-size:12px;color:var(--ink-40);margin-bottom:14px">Entrez votre email pour recevoir un lien de réinitialisation.</p>
-        <div class="fr"><label>Email</label><input id="reset-email" type="email" placeholder="votre@email.com"></div>
+        <div class="fr"><label>Email</label><input id="reset-email" type="email" placeholder="votre@email.com" onkeydown="if(event.key==='Enter')doReset()"></div>
         <button class="btn btn-g" style="width:100%;justify-content:center;padding:9px" onclick="doReset()">Envoyer le lien</button>
         <div style="text-align:center;margin-top:10px"><button class="btn btn-gh btn-sm" onclick="switchAuthTab('login')">← Retour</button></div>
       </div>
@@ -732,6 +732,7 @@ tfoot tr td{padding:8px 10px;font-size:12px;font-weight:500;border-top:.5px soli
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:13px">
         <div style="display:flex;gap:7px;flex-wrap:wrap;align-items:center">
           <input class="ii" placeholder="Rechercher…" id="stock-search" style="width:150px" oninput="renderStock()">
+          <select class="ii" id="stock-marque-filter" onchange="renderStock()" style="width:140px"><option value="">Toutes marques</option></select>
           <select class="ii" id="stock-cat" onchange="renderStock()"><option value="">Toutes catégories</option><option>Sacs</option><option>Petite maroquinerie</option><option>Bijoux</option><option>Montres</option><option>Prêt-à-porter</option><option>Accessoires</option><option>Chaussures</option></select>
           <select class="ii" id="stock-statut-filter" onchange="renderStock()">
             <option value="actif" selected>En stock</option>
@@ -745,13 +746,13 @@ tfoot tr td{padding:8px 10px;font-size:12px;font-weight:500;border-top:.5px soli
             <option value="60">+60 jours</option>
             <option value="90">+90 jours</option>
           </select>
+          <span id="stock-count" style="font-size:11px;color:var(--ink-40);white-space:nowrap"></span>
         </div>
         <div style="display:flex;gap:7px">
           <button class="btn btn-gh btn-sm" onclick="exportStockCSV()">Export CSV</button>
           <button class="btn btn-g btn-sm" onclick="openArticleModal()">+ Ajouter</button>
         </div>
-      </div>
-      <div class="panel" style="margin:0"><table><thead><tr><th style="width:20%">Article</th><th>Marque</th><th>Catégorie</th><th>Source / Auth.</th><th class="tnum">Coût rev.</th><th class="tnum">Prix vente</th><th class="tnum">Marge</th><th>Statut</th><th>État</th><th></th></tr></thead><tbody id="stock-tbody"></tbody><tfoot id="stock-tfoot"></tfoot></table></div>
+      </div><th>Marque</th><th>Catégorie</th><th>Source / Auth.</th><th class="tnum">Coût rev.</th><th class="tnum">Prix vente</th><th class="tnum">Marge</th><th>Statut</th><th>État</th><th></th></tr></thead><tbody id="stock-tbody"></tbody><tfoot id="stock-tfoot"></tfoot></table></div>
     </div>
 
     <!-- VENTES -->
@@ -827,6 +828,12 @@ tfoot tr td{padding:8px 10px;font-size:12px;font-weight:500;border-top:.5px soli
       <div class="kgrid" id="ac-kpis"></div>
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:13px">
         <div style="display:flex;gap:7px;flex-wrap:wrap">
+          <select class="ii" id="ac-filter-periode" onchange="renderAchats()">
+            <option value="">Toute la période</option>
+            <option value="month" selected>Ce mois</option>
+            <option value="last3">3 derniers mois</option>
+            <option value="year">Cette année</option>
+          </select>
           <select class="ii" id="ac-filter-source" onchange="renderAchats()"><option value="">Toutes sources</option><option>Boutique officielle</option><option>Outlet / Stock résiduel</option><option>Vinted</option><option>Vestiaire Collective</option><option>Vente privée</option><option>Autre revendeur</option><option>Particulier</option></select>
           <select class="ii" id="ac-filter-statut" onchange="renderAchats()"><option value="">Tous statuts</option><option>En attente de réception</option><option>Reçu</option><option>Reçu — conforme</option><option>Litige ouvert</option></select>
         </div>
@@ -1045,6 +1052,9 @@ tfoot tr td{padding:8px 10px;font-size:12px;font-weight:500;border-top:.5px soli
 
       <!-- ONGLET : Bilan mensuel -->
       <div id="compta-bilan" style="display:none">
+        <div style="background:var(--amber-bg);border:.5px solid rgba(122,68,0,.15);border-radius:var(--r);padding:10px 14px;margin-bottom:14px;font-size:12px;color:var(--amber)">
+          Le bilan mensuel affiche toutes les périodes disponibles, indépendamment du filtre de période ci-dessus.
+        </div>
         <div class="kgrid" id="compta-kpis-bilan"></div>
         <div class="g2e" style="margin-top:14px;align-items:start">
           <div class="panel">
@@ -1213,7 +1223,7 @@ tfoot tr td{padding:8px 10px;font-size:12px;font-weight:500;border-top:.5px soli
 
 <div class="ov" id="m-vente">
   <div class="modal">
-    <div class="mh"><div class="mt">Nouvelle vente</div><button class="mx" onclick="closeModal('m-vente')">×</button></div>
+    <div class="mh"><div class="mt" id="m-vente-title">Nouvelle vente</div><button class="mx" onclick="closeModal('m-vente')">×</button></div>
     <div class="mb">
       <div class="ptabs">
         <button class="ptab on" onclick="setVenteCanal(this,'Privé')">Clientèle privée</button>
@@ -1221,16 +1231,21 @@ tfoot tr td{padding:8px 10px;font-size:12px;font-weight:500;border-top:.5px soli
         <button class="ptab" onclick="setVenteCanal(this,'Vestiaire')">Vestiaire</button>
       </div>
       <div class="fr"><label>Depuis le stock</label><select id="v-stock-sel" onchange="prefillFromStock(this.value)"><option value="">— Sélectionner —</option></select></div>
-      <div class="fr"><label>Article (saisie libre)</label><input id="v-article" placeholder="Sac Gucci Marmont — Noir"></div>
-      <div class="fg"><div class="fr"><label>Prix de vente (€)</label><input id="v-montant" type="number" placeholder="520"></div><div class="fr"><label>Net reçu (€)</label><input id="v-net" type="number" placeholder="442"></div></div>
-      <div id="v-client-zone"><div class="fr"><label>Client</label><select id="v-client-sel"><option value="">— Sélectionner —</option></select></div></div>
-      <div id="v-platform-zone" style="display:none">
-        <div class="fg"><div class="fr"><label>Pseudo acheteur</label><input id="v-pseudo" placeholder="@pseudo…"></div><div class="fr"><label>N° transaction</label><input id="v-txn" placeholder="TXN-…"></div></div>
+      <div class="fr"><label>Article (saisie libre)</label><input class="ii" id="v-article" placeholder="Sac Gucci Marmont — Noir"></div>
+      <div class="fg">
+        <div class="fr"><label>Prix de vente (€)</label><input class="ii" id="v-montant" type="number" placeholder="520" oninput="calcVenteMarge()"></div>
+        <div class="fr"><label>Net reçu (€)</label><input class="ii" id="v-net" type="number" placeholder="442" oninput="calcVenteMarge()"></div>
       </div>
-      <div class="fg"><div class="fr"><label>Boutique</label><select id="v-boutique"></select></div><div class="fr"><label>Statut</label><select id="v-statut"><option>Payé</option><option>En attente</option><option>Expédié</option></select></div></div>
-      <div class="fr"><label>Date</label><input id="v-date" type="date"></div>
+      <div id="v-marge-display" style="display:none;margin-bottom:12px;padding:8px 11px;border-radius:7px;font-size:12px;font-weight:500;background:var(--green-bg);color:var(--green)"></div>
+      <div id="v-client-zone"><div class="fr"><label>Client</label><select id="v-client-sel"><option value="">— Sélectionner —</option></select></div></div>
+        <div id="v-platform-zone" style="display:none">
+        <div class="fr"><label>Pseudo acheteur</label><input class="ii" id="v-pseudo" placeholder="@pseudo…"></div>
+      </div>
+      <div class="fg"><div class="fr"><label>Boutique</label><select id="v-boutique"></select></div><div class="fr"><label>Statut</label><select id="v-statut"><option>Payé</option><option>En attente</option><option>Expédié</option><option>Retour</option></select></div></div>
+      <div class="fr"><label>Date</label><input class="ii" id="v-date" type="date"></div>
       <div class="fr"><label>Notes</label><textarea id="v-notes" style="min-height:48px"></textarea></div>
       <input type="hidden" id="v-canal" value="Privé">
+      <input type="hidden" id="v-edit-id">
     </div>
     <div class="mf"><button class="btn btn-gh" onclick="closeModal('m-vente')">Annuler</button><button class="btn btn-g" onclick="saveVente()">Enregistrer</button></div>
   </div>
@@ -1275,6 +1290,7 @@ tfoot tr td{padding:8px 10px;font-size:12px;font-weight:500;border-top:.5px soli
       <div class="fr"><label>Accessoires inclus</label><input id="ac-accessoires" placeholder="Dustbag, boîte, cadenas…"></div>
       <div class="fr"><label>Notes</label><textarea id="ac-notes" placeholder="Conditions d'achat, état à réception…"></textarea></div>
       <div class="fr" style="margin-bottom:0"><label style="display:flex;align-items:center;gap:8px;text-transform:none;letter-spacing:0;cursor:pointer;font-size:13px"><input type="checkbox" id="ac-add-stock"> Ajouter automatiquement au stock</label></div>
+      <div id="ac-stock-status" style="display:none;margin-top:7px;font-size:12px;padding:7px 10px;border-radius:7px;background:var(--green-bg);color:var(--green);border:.5px solid rgba(30,102,48,.2)">✓ Cet achat est déjà lié à un article dans le stock</div>
       <input type="hidden" id="ac-edit-id">
     </div>
     <div class="mf"><button class="btn btn-gh" onclick="closeModal('m-achat')">Annuler</button><button class="btn btn-g" onclick="saveAchat()">Enregistrer l'achat</button></div>
@@ -1291,17 +1307,17 @@ tfoot tr td{padding:8px 10px;font-size:12px;font-weight:500;border-top:.5px soli
         <div class="fr"><label>Depuis le stock</label><select id="cmd-stock" onchange="prefillCmdFromStock(this.value)"><option value="">— Sélectionner —</option></select></div>
         <div class="fr"><label>Canal</label><select id="cmd-canal" onchange="toggleCmdCanal()"><option>Privé</option><option>Vinted</option><option>Vestiaire</option></select></div>
       </div>
-      <div class="fr"><label>Article (saisie libre)</label><input id="cmd-article" placeholder="Sac Gucci Marmont — Noir"></div>
-      <div class="fg"><div class="fr"><label>Prix de vente (€)</label><input id="cmd-montant" type="number" placeholder="520"></div><div class="fr"><label>Net reçu (€)</label><input id="cmd-net" type="number" placeholder="442"></div></div>
+      <div class="fr"><label>Article (saisie libre)</label><input class="ii" id="cmd-article" placeholder="Sac Gucci Marmont — Noir"></div>
+      <div class="fg"><div class="fr"><label>Prix de vente (€)</label><input class="ii" id="cmd-montant" type="number" placeholder="520"></div><div class="fr"><label>Net reçu (€)</label><input class="ii" id="cmd-net" type="number" placeholder="442"></div></div>
       <div id="cmd-client-zone"><div class="fr"><label>Client</label><select id="cmd-client"><option value="">— Sélectionner —</option></select></div></div>
-      <div id="cmd-platform-zone" style="display:none"><div class="fg"><div class="fr"><label>Pseudo acheteur</label><input id="cmd-pseudo" placeholder="@pseudo…"></div><div class="fr"><label>N° transaction</label><input id="cmd-txn"></div></div></div>
-      <div class="fg"><div class="fr"><label>Boutique</label><select id="cmd-boutique"></select></div><div class="fr"><label>Date de commande</label><input id="cmd-date" type="date"></div></div>
+      <div id="cmd-platform-zone" style="display:none"><div class="fr"><label>Pseudo acheteur</label><input class="ii" id="cmd-pseudo" placeholder="@pseudo…"></div></div>
+      <div class="fg"><div class="fr"><label>Boutique</label><select id="cmd-boutique"></select></div><div class="fr"><label>Date de commande</label><input class="ii" id="cmd-date" type="date"></div></div>
       <div class="fsep">Expédition</div>
       <div class="fg">
         <div class="fr"><label>Transporteur</label><select id="cmd-transporteur"><option value="">— Non défini —</option><option>Mondial Relay</option><option>Colissimo</option><option>Chronopost</option><option>DHL</option><option>UPS</option><option>Remise en main propre</option></select></div>
-        <div class="fr"><label>N° de suivi</label><input id="cmd-tracking" placeholder="Numéro de suivi colis"></div>
+        <div class="fr"><label>N° de suivi</label><input class="ii" id="cmd-tracking" placeholder="Numéro de suivi colis"></div>
       </div>
-      <div class="fg"><div class="fr"><label>Date d'expédition</label><input id="cmd-date-envoi" type="date"></div><div class="fr"><label>Date livraison estimée</label><input id="cmd-date-livraison" type="date"></div></div>
+      <div class="fg"><div class="fr"><label>Date d'expédition</label><input class="ii" id="cmd-date-envoi" type="date"></div><div class="fr"><label>Date livraison estimée</label><input class="ii" id="cmd-date-livraison" type="date"></div></div>
       <div class="fsep">Statut</div>
       <div class="fg">
         <div class="fr"><label>Statut de la commande</label>
@@ -1402,37 +1418,37 @@ tfoot tr td{padding:8px 10px;font-size:12px;font-weight:500;border-top:.5px soli
           </select>
         </div>
       </div>
-      <div class="fr"><label>Intitulé de la mission</label><input id="ps-titre" placeholder="Shopping Hermès Paris — Birkin & accessoires"></div>
+      <div class="fr"><label>Intitulé de la mission</label><input class="ii" id="ps-titre" placeholder="Shopping Hermès Paris — Birkin & accessoires"></div>
       <div class="fg">
-        <div class="fr"><label>Boutiques / Lieux visités</label><input id="ps-lieux" placeholder="Hermès FSH, Chanel Cambon, Outlet La Vallée…"></div>
-        <div class="fr"><label>Ville / Destination</label><input id="ps-ville" placeholder="Paris, Milan, Londres…"></div>
+        <div class="fr"><label>Boutiques / Lieux visités</label><input class="ii" id="ps-lieux" placeholder="Hermès FSH, Chanel Cambon, Outlet La Vallée…"></div>
+        <div class="fr"><label>Ville / Destination</label><input class="ii" id="ps-ville" placeholder="Paris, Milan, Londres…"></div>
       </div>
       <div class="fr"><label>Articles demandés</label><textarea id="ps-articles-demandes" placeholder="Décrivez les pièces recherchées : marque, modèle, couleur, taille, budget par article…" style="min-height:60px"></textarea></div>
 
       <div class="fsep">Budget & Commission</div>
       <div class="fg3">
-        <div class="fr"><label>Budget client (€)</label><input id="ps-budget" type="number" placeholder="5000" oninput="calcPSCommission()"></div>
-        <div class="fr"><label>Taux commission (%)</label><input id="ps-taux" type="number" placeholder="10" oninput="calcPSCommission()"></div>
+        <div class="fr"><label>Budget client (€)</label><input class="ii" id="ps-budget" type="number" placeholder="5000" oninput="calcPSCommission()"></div>
+        <div class="fr"><label>Taux commission (%)</label><input class="ii" id="ps-taux" type="number" placeholder="10" oninput="calcPSCommission()"></div>
         <div class="fr"><label>Commission estimée (€)</label>
           <div style="padding:8px 11px;border:.5px solid var(--border);border-radius:7px;background:var(--accent-bg);font-weight:500;font-size:13px;color:var(--accent)" id="ps-comm-display">0 €</div>
         </div>
       </div>
       <div class="fg">
-        <div class="fr"><label>Frais de déplacement (€)</label><input id="ps-frais-deplacement" type="number" placeholder="0" oninput="calcPSCommission()"></div>
-        <div class="fr"><label>Autres frais (€)</label><input id="ps-frais-autres" type="number" placeholder="0" oninput="calcPSCommission()"></div>
+        <div class="fr"><label>Frais de déplacement (€)</label><input class="ii" id="ps-frais-deplacement" type="number" placeholder="0" oninput="calcPSCommission()"></div>
+        <div class="fr"><label>Autres frais (€)</label><input class="ii" id="ps-frais-autres" type="number" placeholder="0" oninput="calcPSCommission()"></div>
       </div>
 
       <div class="fsep">Résultat de la mission</div>
       <div class="fg">
-        <div class="fr"><label>Montant total acheté (€)</label><input id="ps-montant-achete" type="number" placeholder="0" oninput="calcPSCommission()"></div>
-        <div class="fr"><label>Commission réelle (€)</label><input id="ps-commission-reelle" type="number" placeholder="0"></div>
+        <div class="fr"><label>Montant total acheté (€)</label><input class="ii" id="ps-montant-achete" type="number" placeholder="0" oninput="calcPSCommission()"></div>
+        <div class="fr"><label>Commission réelle (€)</label><input class="ii" id="ps-commission-reelle" type="number" placeholder="0"></div>
       </div>
       <div class="fr"><label>Articles achetés</label><textarea id="ps-articles-achetes" placeholder="Listez les articles effectivement achetés avec leurs prix…" style="min-height:60px"></textarea></div>
 
       <div class="fsep">Planning & Statut</div>
       <div class="fg3">
-        <div class="fr"><label>Date de la mission</label><input id="ps-date" type="date"></div>
-        <div class="fr"><label>Date de livraison</label><input id="ps-date-livraison" type="date"></div>
+        <div class="fr"><label>Date de la mission</label><input class="ii" id="ps-date" type="date"></div>
+        <div class="fr"><label>Date de livraison</label><input class="ii" id="ps-date-livraison" type="date"></div>
         <div class="fr"><label>Statut</label>
           <select id="ps-statut">
             <option>Demande reçue</option><option>Planifiée</option><option>En déplacement</option>
@@ -1461,24 +1477,24 @@ tfoot tr td{padding:8px 10px;font-size:12px;font-weight:500;border-top:.5px soli
         </div>
       </div>
       <div class="fg">
-        <div class="fr"><label>Marque / Maison</label><input id="src-marque" placeholder="Hermès, Chanel…"></div>
-        <div class="fr"><label>Modèle exact</label><input id="src-modele" placeholder="Birkin 30, 2.55…"></div>
+        <div class="fr"><label>Marque / Maison</label><input class="ii" id="src-marque" placeholder="Hermès, Chanel…"></div>
+        <div class="fr"><label>Modèle exact</label><input class="ii" id="src-modele" placeholder="Birkin 30, 2.55…"></div>
       </div>
       <div class="fg3">
-        <div class="fr"><label>Couleur / Matière</label><input id="src-couleur" placeholder="Noir, Togo…"></div>
-        <div class="fr"><label>Taille / Quincaillerie</label><input id="src-taille" placeholder="30cm, PHW…"></div>
+        <div class="fr"><label>Couleur / Matière</label><input class="ii" id="src-couleur" placeholder="Noir, Togo…"></div>
+        <div class="fr"><label>Taille / Quincaillerie</label><input class="ii" id="src-taille" placeholder="30cm, PHW…"></div>
         <div class="fr"><label>État minimum acceptable</label>
           <select id="src-etat-min"><option>Neuf avec étiquette</option><option>Neuf sans étiquette</option><option>Excellent état</option><option>Très bon état</option><option>Bon état</option></select>
         </div>
       </div>
       <div class="fg">
-        <div class="fr"><label>Budget maximum client (€)</label><input id="src-budget" type="number" placeholder="8500"></div>
-        <div class="fr"><label>Commission sourcing (€ ou %)</label><input id="src-commission" placeholder="ex : 300 € ou 5%"></div>
+        <div class="fr"><label>Budget maximum client (€)</label><input class="ii" id="src-budget" type="number" placeholder="8500"></div>
+        <div class="fr"><label>Commission sourcing (€ ou %)</label><input class="ii" id="src-commission" placeholder="ex : 300 € ou 5%"></div>
       </div>
       <div class="fr"><label>Description / Critères spécifiques</label><textarea id="src-description" placeholder="Détaillez les critères importants pour le client : millésime, accessoires requis, historique pièce…"></textarea></div>
       <div class="fg">
-        <div class="fr"><label>Date de la demande</label><input id="src-date" type="date"></div>
-        <div class="fr"><label>Échéance souhaitée</label><input id="src-echeance" type="date"></div>
+        <div class="fr"><label>Date de la demande</label><input class="ii" id="src-date" type="date"></div>
+        <div class="fr"><label>Échéance souhaitée</label><input class="ii" id="src-echeance" type="date"></div>
       </div>
 
       <div class="fsep">Suivi de la recherche</div>
@@ -1491,15 +1507,15 @@ tfoot tr td{padding:8px 10px;font-size:12px;font-weight:500;border-top:.5px soli
           </select>
         </div>
         <div class="fr"><label>Sources consultées</label>
-          <input id="src-sources" placeholder="Vinted, Vestiaire, revendeur X…">
+          <input class="ii" id="src-sources" placeholder="Vinted, Vestiaire, revendeur X…">
         </div>
       </div>
       <div id="src-result-zone" style="display:none">
         <div class="fg">
-          <div class="fr"><label>Prix trouvé (€)</label><input id="src-prix-trouve" type="number" placeholder="7200"></div>
-          <div class="fr"><label>Marge estimée (€)</label><input id="src-marge-src" type="number" placeholder="300"></div>
+          <div class="fr"><label>Prix trouvé (€)</label><input class="ii" id="src-prix-trouve" type="number" placeholder="7200"></div>
+          <div class="fr"><label>Marge estimée (€)</label><input class="ii" id="src-marge-src" type="number" placeholder="300"></div>
         </div>
-        <div class="fr"><label>Lien / Source de la pièce</label><input id="src-lien" placeholder="URL Vestiaire, contact revendeur…"></div>
+        <div class="fr"><label>Lien / Source de la pièce</label><input class="ii" id="src-lien" placeholder="URL Vestiaire, contact revendeur…"></div>
       </div>
       <div class="fr"><label>Notes & journal de recherche</label><textarea id="src-notes" placeholder="Notez ici toutes vos démarches, contacts, réponses reçues…" style="min-height:72px"></textarea></div>
       <input type="hidden" id="src-edit-id">
@@ -1644,9 +1660,6 @@ function setTheme(t){
     const el = document.getElementById('topt-'+id);
     if(el) el.classList.toggle('on', id===t);
   });
-  // Dark themes get dark icon class
-  const isDark = t==='t3'||t==='t4';
-  document.documentElement.querySelector?.('.i-wine')?.classList;
   document.getElementById('theme-switcher').classList.remove('open');
   if(mainChart) renderDash();
 }
@@ -1679,6 +1692,19 @@ function cc(){
 // ═══════════════════════════════════════════════════════
 // HELPERS
 // ═══════════════════════════════════════════════════════
+const trackingUrl = (transporteur, num) => {
+  if(!num) return '#';
+  const n = encodeURIComponent(num.trim());
+  const urls = {
+    'Colissimo': `https://www.laposte.fr/outils/suivre-vos-envois?code=${n}`,
+    'Chronopost': `https://www.chronopost.fr/tracking-no-cms/suivi-page?listeNumerosLT=${n}`,
+    'Mondial Relay': `https://www.mondialrelay.fr/suivi-de-colis/?numeroExpedition=${n}`,
+    'DHL': `https://www.dhl.com/fr-fr/home/tracking.html?tracking-id=${n}`,
+    'UPS': `https://www.ups.com/track?tracknum=${n}`,
+  };
+  return urls[transporteur] || `https://www.google.com/search?q=${encodeURIComponent(transporteur+' '+num)}`;
+};
+
 const fmt = n => new Intl.NumberFormat('fr-FR').format(Math.round(n||0))+' €';
 const fmtD = d => d ? new Date(d).toLocaleDateString('fr-FR',{day:'2-digit',month:'short',year:'2-digit'}) : '—';
 const inits = c => ((c.prenom||'')[0]||'')+((c.nom||'')[0]||'');
@@ -1757,7 +1783,10 @@ async function doSignup(){
     USER = data.user;
     document.getElementById('auth-screen').style.display='none';
     document.getElementById('loading').style.display='flex';
-    await loadAllData();
+    try { await loadAllData(); } catch(e){
+      const ts=loadFromCache();
+      if(ts) showOfflineBanner(typeof ts==='number'?ts:null);
+    }
     document.getElementById('loading').style.display='none';
     if(SHOPS.length===0){ document.getElementById('onboarding').style.display='flex'; }
     else{ showApp(); }
@@ -1774,6 +1803,7 @@ async function doReset(){
 }
 
 async function doLogout(){
+  if(!confirm('Se déconnecter de Marlo ?')) return;
   await db.auth.signOut();
   USER=null;
   SHOPS=[]; STOCK=[]; VENTES=[]; CLIENTS=[]; FACTURES=[];
@@ -1902,9 +1932,11 @@ function obGo(s){ document.getElementById('ob-'+obStep).style.display='none'; ob
 function toggleObLegal(){ document.getElementById('ob-legal').style.display=document.getElementById('ob-declared').value==='1'?'':'none'; }
 
 async function obSaveShop(addSecond=false){
+  const name = document.getElementById('ob-name').value.trim();
+  if(!name){ toast('Le nom de la boutique est requis.'); return; }
   const shop = {
     user_id: USER.id,
-    name: document.getElementById('ob-name').value.trim()||'Ma Boutique',
+    name: name||'Ma Boutique',
     email: document.getElementById('ob-email').value.trim(),
     declared: document.getElementById('ob-declared').value==='1',
     siret: document.getElementById('ob-siret').value.trim(),
@@ -1916,8 +1948,11 @@ async function obSaveShop(addSecond=false){
     platform_priv: document.getElementById('ob-priv').checked,
     sort_order: 0,
   };
+  const btn = document.querySelector('#ob-1 .btn-g');
+  if(btn){ btn.disabled=true; btn.textContent='Enregistrement…'; }
   const {data,error} = await db.from('shops').insert(shop).select().single();
-  if(error){ toast('Erreur: '+error.message); return; }
+  if(btn){ btn.disabled=false; btn.textContent=addSecond?'Ajouter une 2ème boutique →':'Une seule boutique'; }
+  if(error){ toast('Erreur : '+error.message); return; }
   SHOPS.push(data);
   if(!addSecond) obGo(2);
 }
@@ -2043,7 +2078,19 @@ async function saveAchat(){
 function renderAchats(){
   const fs=document.getElementById('ac-filter-source')?.value||'';
   const fst=document.getElementById('ac-filter-statut')?.value||'';
-  const list=filterByShop(ACHATS_DB).filter(a=>(!fs||a.source===fs)&&(!fst||a.statut===fst));
+  const fp=document.getElementById('ac-filter-periode')?.value||'';
+  const now=new Date();
+  const list=filterByShop(ACHATS_DB).filter(a=>{
+    if(fs && a.source!==fs) return false;
+    if(fst && a.statut!==fst) return false;
+    if(fp && a.date_achat){
+      const d=new Date(a.date_achat);
+      if(fp==='month') return d.getMonth()===now.getMonth()&&d.getFullYear()===now.getFullYear();
+      if(fp==='last3'){ const t=new Date(now); t.setMonth(t.getMonth()-3); return d>=t; }
+      if(fp==='year') return d.getFullYear()===now.getFullYear();
+    }
+    return true;
+  }).sort((a,b)=>new Date(b.date_achat||0)-new Date(a.date_achat||0));
 
   const totalAchats=list.reduce((s,a)=>s+(a.cout_total||0),0);
   const attente=list.filter(a=>a.statut==='En attente de réception').length;
@@ -2105,6 +2152,12 @@ function editAchat(id){
   document.getElementById('ac-notes').value=a.notes||'';
   calcAchatTotal();
   populateSelects();
+  // Vérifier si cet achat est déjà lié au stock (via achat_id uniquement — fiable)
+  const inStock = STOCK.some(s=>s.achat_id===id);
+  const cb = document.getElementById('ac-add-stock');
+  const statusEl = document.getElementById('ac-stock-status');
+  if(cb){ cb.disabled = inStock; if(!inStock) cb.checked = false; }
+  if(statusEl) statusEl.style.display = inStock ? '' : 'none';
   openModal('m-achat');
 }
 async function deleteAchat(id){
@@ -2126,7 +2179,7 @@ function exportAchatsCSV(){
 function openCmdModal(){
   document.getElementById('m-cmd-title').textContent='Nouvelle commande';
   document.getElementById('cmd-edit-id').value='';
-  ['cmd-article','cmd-tracking','cmd-notes','cmd-pseudo','cmd-txn'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  ['cmd-article','cmd-tracking','cmd-notes','cmd-pseudo'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
   ['cmd-montant','cmd-net'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
   document.getElementById('cmd-date').value=new Date().toISOString().split('T')[0];
   document.getElementById('cmd-litige-zone').style.display='none';
@@ -2242,12 +2295,13 @@ async function saveCommande(){
         if(data) VENTES.unshift(data);
         else VENTES.unshift({...vObj,id:String(Date.now())});
       }catch(e){ VENTES.unshift({...vObj,id:String(Date.now())}); }
-      toast('✓ Vente créée automatiquement depuis la commande');
     }
   }
 
   closeModal('m-commande');renderCommandes();populateSelects();
-  toast(editId?'Commande mise à jour':'Commande créée'); updateNotifs();
+  const baseMsg = editId?'Commande mise à jour':'Commande créée';
+  const venteMsg = (obj.statut==='Paiement reçu' && !wasPaid) ? ' — vente créée ✓' : '';
+  toast(baseMsg+venteMsg); updateNotifs();
 }
 
 function renderCommandes(){
@@ -2287,12 +2341,17 @@ function renderCommandes(){
       const cl=CLIENTS.find(x=>x.id===c.client_id);
       const cname=cl?`${cl.prenom} ${cl.nom}`:c.pseudo||'—';
       const isLitige=c.statut==='Litige ouvert';
+      const linkedVente=VENTES.find(v=>v.commande_id===c.id);
       return `<tr onclick="editCommande('${c.id}')" style="${isLitige?'background:var(--red-bg)':''}">
-        <td><div style="font-weight:500">${c.article}</div>${isLitige?`<div style="font-size:10px;color:var(--red);margin-top:2px">⚠ ${c.litige_motif||'Litige'}</div>`:''}</td>
+        <td>
+          <div style="font-weight:500">${c.article}</div>
+          ${isLitige?`<div style="font-size:10px;color:var(--red);margin-top:2px">⚠ ${c.litige_motif||'Litige'}</div>`:''}
+          ${linkedVente?`<div style="font-size:10px;color:var(--green);margin-top:2px;cursor:pointer" onclick="event.stopPropagation();nav('ventes',document.querySelector('[data-sec=ventes]'))">↗ Vente créée</div>`:''}
+        </td>
         <td style="font-size:12px;color:var(--ink-40)">${cname}</td>
         <td>${canalBadge(c.canal)}</td>
         <td style="font-size:12px;color:var(--ink-40)">${c.transporteur||'—'}</td>
-        <td style="font-size:11px;font-family:monospace;color:var(--ink-40)">${c.tracking||'—'}</td>
+        <td style="font-size:11px;font-family:monospace;color:var(--ink-40)">${c.tracking ? `<a href="${trackingUrl(c.transporteur,c.tracking)}" target="_blank" onclick="event.stopPropagation()" style="color:var(--accent);text-decoration:none" title="Suivre le colis">${c.tracking}</a>` : '—'}</td>
         <td class="tnum">${fmt(c.montant)}</td>
         <td><span class="badge ${statutColors[c.statut]||'bw'}">${c.statut}</span></td>
         <td style="font-size:12px;color:var(--ink-40)">${fmtD(c.date_commande)}</td>
@@ -2337,7 +2396,7 @@ async function deleteCommande(id){
 }
 
 // ═══════════════════════════════════════════════════════
-// STOCK — mise à jour saveArticle pour nouveaux champs
+// APP — initialisation et navigation
 // ═══════════════════════════════════════════════════════
 function showApp(){
   document.getElementById('app').style.display='';
@@ -2363,7 +2422,14 @@ function buildShopSwitch(){
   if(SHOPS.length>1) h+=`<button class="sb-shop-btn ${currentShop===-1?'on':''}" onclick="switchShop(-1)">∑</button>`;
   sw.innerHTML=h;
 }
-function switchShop(idx){ currentShop=idx; buildShopSwitch(); updateShopPill(); renderDash(); }
+function switchShop(idx){
+  currentShop=idx;
+  buildShopSwitch();
+  updateShopPill();
+  // Rafraîchir le module actif
+  const active = document.querySelector('.ni.on')?.dataset?.sec || 'dashboard';
+  nav(active, document.querySelector(`[data-sec="${active}"]`));
+}
 function updateShopPill(){ document.getElementById('shop-pill').textContent=currentShop===-1?'Consolidé':SHOPS[currentShop]?.name||'—'; }
 function updateLegalNav(){ const h=anyLegal(); document.getElementById('sb-legal-section').style.display=h?'':'none'; document.getElementById('ni-factures').style.display=h?'':'none'; }
 
@@ -2565,14 +2631,12 @@ function computeNotifs(){
   if(srcOverdue.length) notifs.push({id:'src-overdue',level:'red',icon:'⏰',title:`${srcOverdue.length} sourcing en retard`,sub:'Échéance dépassée',nav:'sourcing'});
 
   // Stock dormant
-  const dormant = filterByShop(STOCK).filter(a=>a.statut!=='Vendu'&&a.date_achat&&(now-new Date(a.date_achat))/(1000*60*60*24)>30);
   const prefs = getPrefs();
   const dormantSeuil = prefs.dormant_jours||30;
   const dormantPlus = filterByShop(STOCK).filter(a=>a.statut!=='Vendu'&&a.date_achat&&(now-new Date(a.date_achat))/(1000*60*60*24)>dormantSeuil);
   if(dormantPlus.length>=3) notifs.push({id:'stock-dormant',level:'amber',icon:'⏱',title:`${dormantPlus.length} articles en stock +${dormantSeuil}j`,sub:'Capital immobilisé',nav:'stock'});
 
-  // PS — missions sans mise à jour depuis 7j
-  // PS — missions actives sans mise à jour depuis 7j (exclure terminées et nouvelles créations)
+  // PS — missions actives sans mise à jour depuis 7j (exclure terminées)
   const STATUTS_PS_TERMINES = ['Livrée','Annulée','Achetée'];
   const psStale = PS_DB.filter(p=>{
     if(STATUTS_PS_TERMINES.includes(p.statut)) return false;
@@ -2779,9 +2843,10 @@ function renderDash(){
     : `<div class="empty" style="padding:20px"><div class="empty-text">Aucun sourcing actif</div><div style="font-size:11px;color:var(--ink-40);margin:5px 0 10px">Créez une demande quand un client cherche une pièce précise</div><button class="btn btn-gh btn-sm" onclick="nav('sourcing',document.querySelector('[data-sec=sourcing]'))">+ Nouvelle demande</button></div>`;
 
   // ── Stock dormant ──
+  const dormantSeuil = getPrefs().dormant_jours||30;
   const dormant = filterByShop(STOCK).filter(a=>{
     if(a.statut==='Vendu'||!a.date_achat) return false;
-    return (now-new Date(a.date_achat))/(1000*60*60*24) > 30;
+    return (now-new Date(a.date_achat))/(1000*60*60*24) > dormantSeuil;
   }).sort((a,b)=>new Date(a.date_achat)-new Date(b.date_achat)).slice(0,4);
 
   document.getElementById('dash-stock-dormant').innerHTML = dormant.length
@@ -2792,10 +2857,10 @@ function renderDash(){
             <div style="font-size:12.5px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${a.marque} ${a.nom}</div>
             <div style="font-size:11px;color:var(--ink-40)">${a.categorie||'—'} · ${fmt(a.cout_revient||a.prix_achat||0)}</div>
           </div>
-          <span style="font-size:11px;font-weight:500;color:${jours>60?'var(--red)':'var(--amber)'};flex-shrink:0">${jours}j</span>
+          <span style="font-size:11px;font-weight:500;color:${jours>dormantSeuil*2?'var(--red)':'var(--amber)'};flex-shrink:0">${jours}j</span>
         </div>`;
       }).join('')
-    : `<div class="empty" style="padding:20px"><div style="font-size:20px;margin-bottom:5px">✓</div><div class="empty-text" style="color:var(--green)">Aucun stock dormant</div><div style="font-size:11px;color:var(--ink-40);margin-top:4px">Tous vos articles bougent bien</div></div>`;
+    : `<div class="empty" style="padding:20px"><div style="font-size:20px;margin-bottom:5px">✓</div><div class="empty-text" style="color:var(--green)">Aucun stock dormant</div><div style="font-size:11px;color:var(--ink-40);margin-top:4px">Tous vos articles bougent bien (+${dormantSeuil}j)</div></div>`;
 
   // ── Missions PS en cours ──
   const psActives = PS_DB.filter(p=>!['Livrée','Annulée'].includes(p.statut)).slice(0,4);
@@ -2856,9 +2921,19 @@ function renderMainChart(period, filtered){
 function renderStock(){
   const search=(document.getElementById('stock-search').value||'').toLowerCase();
   const cat=document.getElementById('stock-cat').value;
+  const marqueF=document.getElementById('stock-marque-filter')?.value||'';
   const statutF=document.getElementById('stock-statut-filter')?.value||'actif';
   const dormantF=parseInt(document.getElementById('stock-dormant-filter')?.value||'0');
+  const dormantSeuil=getPrefs().dormant_jours||30;
   const now=new Date();
+
+  // Peupler le filtre marque dynamiquement
+  const marqueSelect=document.getElementById('stock-marque-filter');
+  if(marqueSelect){
+    const marques=[...new Set(STOCK.map(a=>a.marque).filter(Boolean))].sort();
+    const currentVal=marqueSelect.value;
+    marqueSelect.innerHTML=`<option value="">Toutes marques</option>`+marques.map(m=>`<option value="${m}"${m===currentVal?' selected':''}>${m}</option>`).join('');
+  }
 
   const items=filterByShop(STOCK).filter(a=>{
     const txt=`${a.nom} ${a.marque} ${a.ref||''}`.toLowerCase();
@@ -2867,20 +2942,28 @@ function renderStock(){
     else if(statutF==='') statutOk = true;
     else statutOk = (a.statut||'Disponible')===statutF;
     const dormantOk=!dormantF||(!a.date_achat?false:(now-new Date(a.date_achat))/(1000*60*60*24)>dormantF);
-    return (!search||txt.includes(search))&&(!cat||a.categorie===cat)&&statutOk&&dormantOk;
+    const marqueOk=!marqueF||a.marque===marqueF;
+    return (!search||txt.includes(search))&&(!cat||a.categorie===cat)&&statutOk&&dormantOk&&marqueOk;
   });
 
   const avail=items.filter(a=>a.statut!=='Vendu');
   const va=avail.reduce((s,a)=>s+(a.cout_revient||a.prix_achat||0),0);
   const vv=avail.reduce((s,a)=>s+(a.prix_vente||0),0);
-  const mArgMoy=vv>0?Math.round((vv-va)/vv*100):0;
-  const dormant30=filterByShop(STOCK).filter(a=>a.statut!=='Vendu'&&a.date_achat&&(now-new Date(a.date_achat))/(1000*60*60*24)>30).length;
+  const dormant30=filterByShop(STOCK).filter(a=>a.statut!=='Vendu'&&a.date_achat&&(now-new Date(a.date_achat))/(1000*60*60*24)>dormantSeuil).length;
+
+  // Compteur résultats
+  const countEl=document.getElementById('stock-count');
+  if(countEl){
+    const hasFilter=document.getElementById('stock-search').value||document.getElementById('stock-marque-filter')?.value||document.getElementById('stock-cat').value||document.getElementById('stock-dormant-filter')?.value;
+    countEl.textContent = hasFilter ? `${items.length} résultat${items.length>1?'s':''}` : '';
+  }
+  const dormantSeuilLabel = dormantSeuil===30?'+30j':`+${dormantSeuil}j`;
 
   document.getElementById('stock-kpis').innerHTML=`
     <div class="kcard"><div class="kl">En stock</div><div class="kv">${avail.length}</div><div class="kd kmu">articles disponibles</div></div>
     <div class="kcard"><div class="kl">Coût de revient total</div><div class="kv">${fmt(va)}</div><div class="kd kmu">investi</div></div>
     <div class="kcard"><div class="kl">Valeur de vente</div><div class="kv">${fmt(vv)}</div><div class="kd kup">prix cibles</div></div>
-    <div class="kcard"><div class="kl">Stock dormant +30j</div><div class="kv" style="color:${dormant30>0?'var(--amber)':'var(--green)'}">${dormant30}</div><div class="kd ${dormant30>0?'kdn':'kup'}">articles</div></div>`;
+    <div class="kcard"><div class="kl">Stock dormant ${dormantSeuilLabel}</div><div class="kv" style="color:${dormant30>0?'var(--amber)':'var(--green)'}">${dormant30}</div><div class="kd ${dormant30>0?'kdn':'kup'}">articles</div></div>`;
 
   const authBadge=v=>{
     if(!v||v==='Non vérifiée') return `<span style="font-size:9px;color:var(--amber);background:var(--amber-bg);border-radius:3px;padding:1px 5px">⚠ NV</span>`;
@@ -2898,7 +2981,7 @@ function renderStock(){
         const m=revient&&a.prix_vente?Math.round((a.prix_vente-revient)/a.prix_vente*100):0;
         const pct=Math.min(100,Math.max(0,m));
         const jours=a.date_achat?Math.floor((now-new Date(a.date_achat))/(1000*60*60*24)):null;
-        const isDormant=jours&&jours>30&&a.statut!=='Vendu';
+        const isDormant=jours&&jours>dormantSeuil&&a.statut!=='Vendu';
         return `<tr onclick="editArticle('${a.id}')" style="${isDormant?'background:rgba(122,68,0,.04)':''}">
           <td>
             <div style="font-weight:500">${a.nom}${isDormant?` <span style="font-size:9px;color:var(--amber);background:var(--amber-bg);border-radius:3px;padding:1px 5px">${jours}j</span>`:''}</div>
@@ -2916,6 +2999,7 @@ function renderStock(){
           <td>${statutBadgeStock(a.statut)}</td>
           <td><span class="badge ${etatClass(a.etat)}" style="font-size:9px">${(a.etat||'—').replace('Neuf avec étiquette','BNWT').replace('Neuf sans étiquette','BNWOT').replace('Excellent état','Exc.').replace('Très bon état','TBE').replace('Bon état','BE').replace('État correct','BC')}</span></td>
           <td><div style="display:flex;gap:3px">
+            ${a.statut!=='Vendu'?`<button class="btn btn-g btn-sm" onclick="event.stopPropagation();vendrDepuisStock('${a.id}')" title="Créer une vente" style="font-size:10px;padding:4px 7px">💰</button>`:''}
             <button class="btn btn-gh btn-sm" onclick="event.stopPropagation();editArticle('${a.id}')">✎</button>
             <button class="btn btn-r btn-sm" onclick="event.stopPropagation();deleteArticle('${a.id}')">✕</button>
           </div></td>
@@ -3109,19 +3193,110 @@ function exportStockCSV(){
 // ═══════════════════════════════════════════════════════
 // VENTES
 // ═══════════════════════════════════════════════════════
-function openVenteModal(){ populateSelects(); openModal('m-vente'); }
+function vendrDepuisStock(id){
+  const a = STOCK.find(x=>x.id===id); if(!a) return;
+  populateSelects();
+  // Pré-remplir le modal vente
+  const vss = document.getElementById('v-stock-sel');
+  if(vss){ vss.value = id; }
+  document.getElementById('v-article').value = `${a.marque} ${a.nom}`.trim();
+  document.getElementById('v-montant').value = a.prix_vente||'';
+  document.getElementById('v-boutique').value = a.shop_id||'';
+  // Canal par défaut Privé
+  document.querySelectorAll('#m-vente .ptab').forEach(b=>b.classList.remove('on'));
+  document.querySelector('#m-vente .ptab')?.classList.add('on');
+  document.getElementById('v-canal').value = 'Privé';
+  document.getElementById('v-client-zone').style.display = '';
+  document.getElementById('v-platform-zone').style.display = 'none';
+  document.getElementById('v-date').value = new Date().toISOString().split('T')[0];
+  openModal('m-vente');
+}
+
+function editVente(id){
+  const v = VENTES.find(x=>x.id===id); if(!v) return;
+  populateSelects();
+  document.getElementById('m-vente-title').textContent = 'Modifier la vente';
+  document.getElementById('v-edit-id').value = id;
+  document.getElementById('v-article').value = v.article||'';
+  document.getElementById('v-montant').value = v.montant||'';
+  document.getElementById('v-net').value = v.net||'';
+  document.getElementById('v-date').value = v.date||'';
+  document.getElementById('v-statut').value = v.statut||'Payé';
+  document.getElementById('v-notes').value = v.notes||'';
+  document.getElementById('v-boutique').value = v.shop_id||'';
+  document.getElementById('v-canal').value = v.canal||'Privé';
+  // Onglet canal
+  const tabs = document.querySelectorAll('#m-vente .ptab');
+  const canaux = ['Privé','Vinted','Vestiaire'];
+  tabs.forEach((b,i)=>b.classList.toggle('on', canaux[i]===v.canal));
+  document.getElementById('v-client-zone').style.display = v.canal==='Privé'?'':'none';
+  document.getElementById('v-platform-zone').style.display = v.canal!=='Privé'?'':'none';
+  if(v.canal==='Privé'){ const s=document.getElementById('v-client-sel'); if(s) s.value=v.client_id||''; }
+  else { const p=document.getElementById('v-pseudo'); if(p) p.value=v.pseudo||''; }
+  // Stock
+  const vss=document.getElementById('v-stock-sel'); if(vss) vss.value=v.stock_id||'';
+  const vm=document.getElementById('v-marge-display'); if(vm) vm.style.display='none';
+  calcVenteMarge();
+  openModal('m-vente');
+}
+
+function openVenteModal(){
+  populateSelects();
+  document.getElementById('m-vente-title').textContent = 'Nouvelle vente';
+  document.getElementById('v-edit-id').value = '';
+  // Reset tous les champs
+  ['v-article','v-montant','v-net','v-pseudo','v-notes'].forEach(id=>{
+    const el=document.getElementById(id); if(el) el.value='';
+  });
+  const vss=document.getElementById('v-stock-sel'); if(vss) vss.value='';
+  document.getElementById('v-date').value=new Date().toISOString().split('T')[0];
+  document.getElementById('v-statut').value='Payé';
+  document.getElementById('v-canal').value='Privé';
+  document.getElementById('v-client-zone').style.display='';
+  document.getElementById('v-platform-zone').style.display='none';
+  document.querySelectorAll('#m-vente .ptab').forEach((b,i)=>b.classList.toggle('on',i===0));
+  const vm=document.getElementById('v-marge-display'); if(vm) vm.style.display='none';
+  openModal('m-vente');
+}
 function setVenteCanal(btn,canal){
   document.querySelectorAll('#m-vente .ptab').forEach(b=>b.classList.remove('on')); btn.classList.add('on');
   document.getElementById('v-canal').value=canal;
   document.getElementById('v-client-zone').style.display=canal==='Privé'?'':'none';
   document.getElementById('v-platform-zone').style.display=canal!=='Privé'?'':'none';
 }
+function calcVenteMarge(){
+  const stockId = document.getElementById('v-stock-sel')?.value;
+  const montant = parseFloat(document.getElementById('v-montant')?.value)||0;
+  const net = parseFloat(document.getElementById('v-net')?.value)||0;
+  const el = document.getElementById('v-marge-display');
+  if(!el) return;
+
+  const pv = net||montant;
+  if(!pv){ el.style.display='none'; return; }
+
+  // Chercher le coût de revient depuis le stock
+  const article = STOCK.find(a=>a.id===stockId);
+  const cout = article ? (article.cout_revient||article.prix_achat||0) : 0;
+
+  if(cout > 0){
+    const marge = pv - cout;
+    const pct = Math.round(marge/pv*100);
+    el.style.display = '';
+    el.style.background = pct<15?'var(--red-bg)':pct<30?'var(--amber-bg)':'var(--green-bg)';
+    el.style.color = pct<15?'var(--red)':pct<30?'var(--amber)':'var(--green)';
+    el.textContent = `Marge : ${fmt(marge)} (${pct}%) — Coût de revient : ${fmt(cout)}`;
+  } else {
+    el.style.display='none';
+  }
+}
+
 function prefillFromStock(id){
   if(!id) return;
   const a=STOCK.find(x=>x.id===id); if(!a) return;
-  document.getElementById('v-article').value=`${a.marque} ${a.nom}`;
+  document.getElementById('v-article').value=`${a.marque} ${a.nom}`.trim();
   document.getElementById('v-montant').value=a.prix_vente||'';
   document.getElementById('v-boutique').value=a.shop_id||'';
+  calcVenteMarge();
 }
 
 function renderVentes(){
@@ -3141,17 +3316,18 @@ function renderVentes(){
       if(fp==='year') return d.getFullYear()===now.getFullYear();
     }
     return true;
-  });
+  }).sort((a,b)=>new Date(b.date||0)-new Date(a.date||0));
+
   const ca=list.reduce((s,v)=>s+(v.montant||0),0);
   const net=list.reduce((s,v)=>s+(v.net||v.montant||0),0);
   const depuisCmd=list.filter(v=>v.commande_id).length;
-  const manuelles=list.length-depuisCmd;
+  const retours=list.filter(v=>v.statut==='Retour').length;
 
   document.getElementById('ventes-kpis').innerHTML=`
-    <div class="kcard"><div class="kl">CA total</div><div class="kv">${fmt(ca)}</div><div class="kd kmu">${list.length} ventes</div></div>
+    <div class="kcard"><div class="kl">CA total</div><div class="kv">${fmt(ca)}</div><div class="kd kmu">${list.length} vente${list.length>1?'s':''}</div></div>
     <div class="kcard"><div class="kl">Net encaissé</div><div class="kv">${fmt(net)}</div><div class="kd kmu">après commissions</div></div>
     <div class="kcard"><div class="kl">Depuis commandes</div><div class="kv">${depuisCmd}</div><div class="kd kmu">auto-créées</div></div>
-    <div class="kcard"><div class="kl">Saisies manuellement</div><div class="kv">${manuelles}</div><div class="kd kmu">Privé / direct</div></div>`;
+    <div class="kcard"><div class="kl">Retours</div><div class="kv" style="${retours>0?'color:var(--red)':''}">${retours}</div><div class="kd ${retours>0?'kdn':'kmu'}"></div></div>`;
 
   document.getElementById('ventes-tbody').innerHTML = list.length
     ? list.map(v=>{
@@ -3166,9 +3342,12 @@ function renderVentes(){
           <td style="color:var(--ink-40);font-size:12px">${shopName(v.shop_id)}</td>
           <td class="tnum">${fmt(v.montant)}</td>
           <td class="tnum" style="color:var(--ink-40)">${v.net?fmt(v.net):'—'}</td>
-          <td>${statutBadge(v.statut)}</td>
+          <td onclick="toggleVenteStatut('${v.id}')" style="cursor:pointer" title="Cliquer pour changer le statut">${statutBadge(v.statut)}</td>
           <td style="color:var(--ink-40);font-size:12px">${fmtD(v.date)}</td>
-          <td><button class="btn btn-r btn-sm" onclick="deleteVente('${v.id}')">✕</button></td>
+          <td><div style="display:flex;gap:3px">
+            <button class="btn btn-gh btn-sm" onclick="editVente('${v.id}')">✎</button>
+            <button class="btn btn-r btn-sm" onclick="deleteVente('${v.id}')">✕</button>
+          </div></td>
         </tr>`;
       }).join('')
     : `<tr><td colspan="9"><div class="empty">
@@ -3216,6 +3395,7 @@ function exportVentesCSV(){
 }
 
 async function saveVente(){
+  const editId=document.getElementById('v-edit-id').value;
   const canal=document.getElementById('v-canal').value;
   const articleSel=document.getElementById('v-stock-sel').value;
   const article=document.getElementById('v-article').value.trim()||'Article';
@@ -3235,25 +3415,70 @@ async function saveVente(){
     if(c) clientId=c.id;
   }
 
-  const v={user_id:USER.id,shop_id:shopId,stock_id:articleSel||null,client_id:clientId,pseudo,canal,article,montant,net,statut:document.getElementById('v-statut').value,date:document.getElementById('v-date').value,notes:document.getElementById('v-notes').value.trim(),source_email:false};
-  const {data,error}=await db.from('ventes').insert(v).select().single();
-  if(error){ toast('Erreur: '+error.message); return; }
-  VENTES.unshift(data);
-  if(articleSel){ await db.from('stock').update({statut:'Vendu'}).eq('id',articleSel); const a=STOCK.find(x=>x.id===articleSel); if(a) a.statut='Vendu'; }
-  closeModal('m-vente'); renderVentes(); populateSelects(); updateNotifs(); toast('Vente enregistrée');
+  const obj={shop_id:shopId,stock_id:articleSel||null,client_id:clientId,pseudo,canal,article,montant,net,statut:document.getElementById('v-statut').value,date:document.getElementById('v-date').value,notes:document.getElementById('v-notes').value.trim()};
+
+  if(editId){
+    const {data,error}=await db.from('ventes').update(obj).eq('id',editId).select().single();
+    if(error){ toast('Erreur: '+error.message); return; }
+    const i=VENTES.findIndex(v=>v.id===editId);
+    if(i>=0) VENTES[i]={...VENTES[i],...(data||obj)};
+    closeModal('m-vente'); renderVentes(); populateSelects(); updateNotifs(); toast('Vente mise à jour');
+  } else {
+    const v={user_id:USER.id,...obj,source_email:false};
+    const {data,error}=await db.from('ventes').insert(v).select().single();
+    if(error){ toast('Erreur: '+error.message); return; }
+    VENTES.unshift(data);
+    if(articleSel){ await db.from('stock').update({statut:'Vendu'}).eq('id',articleSel); const a=STOCK.find(x=>x.id===articleSel); if(a) a.statut='Vendu'; }
+    closeModal('m-vente'); renderVentes(); populateSelects(); updateNotifs(); toast('Vente enregistrée');
+  }
+}
+
+async function toggleVenteStatut(id){
+  const v = VENTES.find(x=>x.id===id); if(!v) return;
+  const cycle = ['En attente','Expédié','Payé','Retour'];
+  const idx = cycle.indexOf(v.statut);
+  const next = cycle[(idx+1)%cycle.length];
+  try{ await db.from('ventes').update({statut:next}).eq('id',id); }catch(e){}
+  v.statut = next;
+  renderVentes();
+  toast(`Vente → ${next}`);
 }
 
 async function deleteVente(id){
   if(!confirm('Supprimer cette vente ? Cette action est irréversible.')) return;
+  const vente = VENTES.find(v=>v.id===id);
   await db.from('ventes').delete().eq('id',id);
   VENTES=VENTES.filter(v=>v.id!==id);
-  renderVentes(); toast('Vente supprimée');
+  // Si la vente était liée à un article stock, proposer de le repasser en Disponible
+  if(vente?.stock_id){
+    const a = STOCK.find(x=>x.id===vente.stock_id);
+    if(a && a.statut==='Vendu'){
+      if(confirm(`L'article "${a.marque} ${a.nom}" est marqué Vendu.\nVoulez-vous le repasser en Disponible ?`)){
+        try{ await db.from('stock').update({statut:'Disponible'}).eq('id',a.id); }catch(e){}
+        a.statut='Disponible';
+        populateSelects();
+      }
+    }
+  }
+  renderVentes(); updateNotifs(); toast('Vente supprimée');
 }
 
 // ═══════════════════════════════════════════════════════
 // CLIENTS
 // ═══════════════════════════════════════════════════════
-function openClientModal(){ document.getElementById('m-client-title').textContent='Nouveau client'; document.getElementById('c-edit-id').value=''; ['c-prenom','c-nom','c-email','c-tel','c-marques','c-couleurs','c-taille','c-notes'].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=''; }); populateSelects(); openModal('m-client'); }
+function openClientModal(){
+  document.getElementById('m-client-title').textContent='Nouveau client';
+  document.getElementById('c-edit-id').value='';
+  ['c-prenom','c-nom','c-email','c-tel','c-marques','c-couleurs','c-taille','c-notes'].forEach(id=>{
+    const el=document.getElementById(id); if(el) el.value='';
+  });
+  // Reset canal à Privé
+  document.getElementById('c-canal').value='Privé';
+  document.getElementById('c-priv-zone').style.display='';
+  document.querySelectorAll('#m-client .ptab').forEach((b,i)=>b.classList.toggle('on',i===0));
+  populateSelects();
+  openModal('m-client');
+}
 function setClientCanal(btn,canal){ document.querySelectorAll('#m-client .ptab').forEach(b=>b.classList.remove('on')); btn.classList.add('on'); document.getElementById('c-canal').value=canal; document.getElementById('c-priv-zone').style.display=canal==='Privé'?'':'none'; }
 
 function renderClients(){
@@ -3422,7 +3647,7 @@ function renderFactures(){
         <td>${c?`${c.prenom} ${c.nom}`:'—'}</td>
         <td style="font-size:12px;color:var(--ink-40)">${shopName(f.shop_id)}</td>
         <td class="tnum">${fmt(f.montant_ht)}</td><td class="tnum" style="color:var(--ink-40)">${fmt(f.tva_amount)}</td><td class="tnum">${fmt(f.montant_ttc)}</td>
-        <td>${statutBadge(f.statut)}</td>
+        <td onclick="event.stopPropagation();toggleFactureStatut('${f.id}')" style="cursor:pointer" title="Cliquer pour changer le statut">${statutBadge(f.statut)}</td>
         <td style="font-size:12px;color:var(--ink-40)">${fmtD(f.date_emission)}</td>
         <td><div style="display:flex;gap:3px">
           <button class="btn btn-gh btn-sm" onclick="previewFactureById('${f.id}')">PDF</button>
@@ -3445,6 +3670,15 @@ async function saveFacture(){
   const prefs = SETTINGS.prefs || null;
   await db.from('settings').upsert({user_id:USER.id, invoice_counter:SETTINGS.invoice_counter, ...(prefs?{prefs}:{})}, {onConflict:'user_id'});
   closeModal('m-facture'); renderFactures(); toast(`Facture ${num} créée`);
+}
+
+async function toggleFactureStatut(id){
+  const f = FACTURES.find(x=>x.id===id); if(!f) return;
+  const next = f.statut==='Payée' ? 'En attente' : 'Payée';
+  try{ await db.from('factures').update({statut:next}).eq('id',id); }catch(e){}
+  f.statut = next;
+  renderFactures();
+  toast(`Facture ${next==='Payée'?'✓ marquée Payée':'remise En attente'}`);
 }
 
 async function deleteFacture(id){
@@ -3632,26 +3866,45 @@ function getPrefs(){
 
 function exportAllCSV(){
   const date = new Date().toISOString().split('T')[0];
+  const cl = id => { const c=CLIENTS.find(x=>x.id===id); return c?`${c.prenom} ${c.nom}`:''; };
+
   // Ventes
   dlCSV([
-    ['Date','Article','Canal','Montant','Net','Commission','Statut'],
-    ...VENTES.map(v=>[v.date,v.article,v.canal,v.montant,v.net||'',v.commission||'',v.statut])
+    ['Date','Article','Canal','Client','Montant','Net','Commission','Statut'],
+    ...VENTES.map(v=>[v.date,v.article,v.canal,cl(v.client_id)||v.pseudo||'',v.montant,v.net||'',v.commission||'',v.statut])
   ], `marlo_ventes_${date}.csv`);
-  setTimeout(()=>{
-    // Stock
-    dlCSV([
-      ['Référence','Nom','Marque','Catégorie','Coût revient','Prix vente','Marge%','État','Statut','Source'],
-      ...STOCK.map(a=>{ const r=a.cout_revient||a.prix_achat||0; const pv=a.prix_vente||0; return [a.ref,a.nom,a.marque,a.categorie,r,pv,pv>0?Math.round((pv-r)/pv*100)+'%':'—',a.etat,a.statut,a.source]; })
-    ], `marlo_stock_${date}.csv`);
-  }, 500);
-  setTimeout(()=>{
-    // Achats
-    dlCSV([
-      ['Date','Nom','Marque','Source','Vendeur','Prix achat','Coût total','Statut'],
-      ...ACHATS_DB.map(a=>[a.date_achat,a.nom,a.marque,a.source,a.vendeur,a.prix_achat,a.cout_total,a.statut])
-    ], `marlo_achats_${date}.csv`);
-  }, 1000);
-  toast('Export CSV — 3 fichiers téléchargés');
+
+  setTimeout(()=>{ dlCSV([
+    ['Référence','Nom','Marque','Catégorie','Coût revient','Prix vente','Marge%','État','Statut','Source'],
+    ...STOCK.map(a=>{ const r=a.cout_revient||a.prix_achat||0; const pv=a.prix_vente||0; return [a.ref,a.nom,a.marque,a.categorie,r,pv,pv>0?Math.round((pv-r)/pv*100)+'%':'—',a.etat,a.statut,a.source]; })
+  ], `marlo_stock_${date}.csv`); }, 500);
+
+  setTimeout(()=>{ dlCSV([
+    ['Date','Nom','Marque','Source','Vendeur','Prix achat','Coût total','Statut'],
+    ...ACHATS_DB.map(a=>[a.date_achat,a.nom,a.marque,a.source,a.vendeur,a.prix_achat,a.cout_total,a.statut])
+  ], `marlo_achats_${date}.csv`); }, 1000);
+
+  setTimeout(()=>{ dlCSV([
+    ['Date','Article','Canal','Client','Montant','Statut','Transporteur','Tracking'],
+    ...COMMANDES.map(c=>[c.date_commande,c.article,c.canal,cl(c.client_id)||c.pseudo||'',c.montant,c.statut,c.transporteur||'',c.tracking||''])
+  ], `marlo_commandes_${date}.csv`); }, 1500);
+
+  setTimeout(()=>{ dlCSV([
+    ['Marque','Modèle','Couleur','Client','Budget','Statut','Urgence','Échéance','Commission'],
+    ...SOURCING_DB.map(s=>[s.marque,s.modele,s.couleur||'',cl(s.client_id),s.budget||'',s.statut,s.urgence,s.echeance||'',s.commission||''])
+  ], `marlo_sourcing_${date}.csv`); }, 2000);
+
+  setTimeout(()=>{ dlCSV([
+    ['Titre','Client','Type','Ville','Budget','Montant acheté','Commission','Statut','Date'],
+    ...PS_DB.map(p=>[p.titre,cl(p.client_id),p.type||'',p.ville||'',p.budget||'',p.montant_achete||'',p.commission||'',p.statut,p.date_mission||''])
+  ], `marlo_ps_${date}.csv`); }, 2500);
+
+  setTimeout(()=>{ dlCSV([
+    ['Prénom','Nom','Société','Type','Email','Téléphone','Instagram','Ville','Fiabilité','Marques'],
+    ...RESEAU_DB.map(r=>[r.prenom||'',r.nom||'',r.societe||'',r.type||'',r.email||'',r.telephone||'',r.instagram||'',r.ville||'',r.fiabilite||'',r.marques||''])
+  ], `marlo_reseau_${date}.csv`); }, 3000);
+
+  toast('Export CSV — 7 fichiers téléchargés');
 }
 function openShopEdit(id){
   const s=SHOPS.find(x=>x.id===id); if(!s) return;
@@ -3791,14 +4044,14 @@ function renderReseau(){
     return (!search||txt.includes(search)) && (!ft||r.type===ft) && fiabOk;
   });
 
-  // KPIs
+  // KPIs — basés sur la liste filtrée
   const byType = {};
-  RESEAU_DB.forEach(r=>{ byType[r.type]=(byType[r.type]||0)+1; });
+  list.forEach(r=>{ byType[r.type]=(byType[r.type]||0)+1; });
   const topType = Object.entries(byType).sort((a,b)=>b[1]-a[1])[0];
-  const fiables = RESEAU_DB.filter(r=>r.fiabilite>=4).length;
+  const fiables = list.filter(r=>r.fiabilite>=4).length;
 
   document.getElementById('reseau-kpis').innerHTML=`
-    <div class="kcard"><div class="kl">Total contacts</div><div class="kv">${RESEAU_DB.length}</div><div class="kd kmu">dans le réseau</div></div>
+    <div class="kcard"><div class="kl">Contacts${list.length<RESEAU_DB.length?' (filtrés)':''}</div><div class="kv">${list.length}</div><div class="kd kmu">${list.length<RESEAU_DB.length?'sur '+RESEAU_DB.length+' total':'dans le réseau'}</div></div>
     <div class="kcard"><div class="kl">Très fiables</div><div class="kv" style="color:var(--green)">${fiables}</div><div class="kd kup">★★★★+</div></div>
     <div class="kcard"><div class="kl">Revendeurs</div><div class="kv">${byType['Revendeur']||0}</div><div class="kd kmu"></div></div>
     <div class="kcard"><div class="kl">Catégorie dominante</div><div class="kv" style="font-size:14px;font-family:'Cormorant Garamond',serif">${topType?topType[0]:'—'}</div><div class="kd kmu">${topType?topType[1]+' contacts':''}</div></div>`;
@@ -3836,7 +4089,10 @@ function renderReseau(){
           ${r.instagram?`<a href="https://instagram.com/${r.instagram.replace('@','')}" target="_blank" onclick="event.stopPropagation()" style="font-size:10px;color:var(--accent);text-decoration:none">IG ${r.instagram}</a>`:''}
         </div>
         ${lastEntry?`<div style="background:var(--bg2);border-radius:5px;padding:6px 8px;font-size:11px;color:var(--ink-70);border-left:2px solid var(--accent-border);margin-bottom:10px">
-          <div style="font-size:9px;color:var(--ink-40);margin-bottom:2px">${fmtD(lastEntry.date)}</div>
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:2px">
+            <div style="font-size:9px;color:var(--ink-40)">${fmtD(lastEntry.date)}</div>
+            <div style="font-size:9px;color:var(--ink-40)">${Math.floor((new Date()-new Date(lastEntry.date))/(1000*60*60*24))}j</div>
+          </div>
           <div style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${lastEntry.text}</div>
         </div>`:''}
       </div>
@@ -4315,8 +4571,12 @@ function renderSourcing(){
 
   document.getElementById('src-kanban').innerHTML = kanbanCols.map(col=>{
     const items = SOURCING_DB.filter(s=>col.statuts.includes(s.statut));
+    const totalBudget = items.reduce((s,x)=>s+(x.budget||0),0);
     return `<div style="background:${col.bg};border-radius:var(--r);padding:12px">
-      <div style="font-size:11px;font-weight:500;letter-spacing:.06em;margin-bottom:10px;color:var(--ink-70)">${col.label} <span style="color:var(--ink-40)">(${items.length})</span></div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+        <div style="font-size:11px;font-weight:500;letter-spacing:.06em;color:var(--ink-70)">${col.label} <span style="color:var(--ink-40)">(${items.length})</span></div>
+        ${totalBudget>0?`<div style="font-size:10px;color:var(--accent);font-weight:500">${fmt(totalBudget)}</div>`:''}
+      </div>
       <div style="display:flex;flex-direction:column;gap:8px">
         ${items.length ? items.map(s=>{
           const cl=CLIENTS.find(c=>c.id===s.client_id);
@@ -4704,8 +4964,11 @@ function showAuth(){
 }
 
 async function boot(){
-  // Tenter de récupérer une session existante (utilisateur déjà connecté)
-  // Si ça rate ou timeout → l'auth-screen est déjà visible, rien à faire
+  // Restaurer le thème sauvegardé
+  const savedTheme = localStorage.getItem('marlo-theme');
+  if(savedTheme && ['t1','t2','t3','t4'].includes(savedTheme)) setTheme(savedTheme);
+  // Point connexion — orange par défaut jusqu'à confirmation
+  setConnStatus('offline');
   try {
     const result = await Promise.race([
       db.auth.getSession(),
@@ -4746,7 +5009,13 @@ function setupAuthListener(){
         USER = session.user;
         document.getElementById('auth-screen').style.display = 'none';
         document.getElementById('loading').style.display = 'flex';
-        await loadAllData();
+        try {
+          await loadAllData();
+        } catch(e){
+          const ts = loadFromCache();
+          if(typeof ts === 'number') showOfflineBanner(ts);
+          else if(ts) showOfflineBanner(null);
+        }
         document.getElementById('loading').style.display = 'none';
         if(SHOPS.length === 0){
           document.getElementById('onboarding').style.display = 'flex';
