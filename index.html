@@ -325,6 +325,7 @@ tr:hover td{background:var(--accent-bg);cursor:pointer}
 .notif-body-sub{font-size:11px;color:var(--ink-40)}
 .notif-empty{padding:24px;text-align:center;font-size:12px;color:var(--ink-40)}
 .topbar-r{position:relative}
+tfoot tr td{padding:8px 10px;font-size:12px;font-weight:500;border-top:.5px solid var(--border-s);background:var(--bg2);color:var(--ink-70)}
 </style>
 </head>
 <body>
@@ -394,15 +395,15 @@ tr:hover td{background:var(--accent-bg);cursor:pointer}
         <div style="display:flex;flex-direction:column;gap:9px">
           <div style="background:var(--accent-bg);border:.5px solid var(--accent-border);border-radius:8px;padding:11px 13px;font-size:12.5px">
             <div style="font-weight:500;margin-bottom:2px">Gestion multi-boutiques</div>
-            <div style="color:var(--ink-40)">1 ou 2 boutiques avec profils distincts</div>
+            <div style="color:var(--ink-40)">Vinted, Vestiaire & clientèle privée réunis</div>
           </div>
           <div style="background:var(--accent-bg);border:.5px solid var(--accent-border);border-radius:8px;padding:11px 13px;font-size:12.5px">
-            <div style="font-weight:500;margin-bottom:2px">Sync Vinted & Vestiaire</div>
-            <div style="color:var(--ink-40)">Import automatique via emails de confirmation</div>
+            <div style="font-weight:500;margin-bottom:2px">Sourcing & Personal Shopping</div>
+            <div style="color:var(--ink-40)">Gérez vos recherches et missions clients</div>
           </div>
           <div style="background:var(--accent-bg);border:.5px solid var(--accent-border);border-radius:8px;padding:11px 13px;font-size:12.5px">
-            <div style="font-weight:500;margin-bottom:2px">Facturation légale</div>
-            <div style="color:var(--ink-40)">Factures PDF pour boutiques déclarées</div>
+            <div style="font-weight:500;margin-bottom:2px">Comptabilité & Facturation</div>
+            <div style="color:var(--ink-40)">Marges, TVA sur marge, factures PDF</div>
           </div>
         </div>
       </div>
@@ -652,7 +653,7 @@ tr:hover td{background:var(--accent-bg);cursor:pointer}
           <button class="btn btn-g btn-sm" onclick="openArticleModal()">+ Ajouter</button>
         </div>
       </div>
-      <div class="panel" style="margin:0"><table><thead><tr><th style="width:20%">Article</th><th>Marque</th><th>Catégorie</th><th>Source / Auth.</th><th class="tnum">Coût rev.</th><th class="tnum">Prix vente</th><th class="tnum">Marge</th><th>Statut</th><th>État</th><th></th></tr></thead><tbody id="stock-tbody"></tbody></table></div>
+      <div class="panel" style="margin:0"><table><thead><tr><th style="width:20%">Article</th><th>Marque</th><th>Catégorie</th><th>Source / Auth.</th><th class="tnum">Coût rev.</th><th class="tnum">Prix vente</th><th class="tnum">Marge</th><th>Statut</th><th>État</th><th></th></tr></thead><tbody id="stock-tbody"></tbody><tfoot id="stock-tfoot"></tfoot></table></div>
     </div>
 
     <!-- VENTES -->
@@ -669,9 +670,10 @@ tr:hover td{background:var(--accent-bg);cursor:pointer}
           <select class="ii" id="v-filter-canal" onchange="renderVentes()"><option value="">Tous canaux</option><option>Privé</option><option>Vinted</option><option>Vestiaire</option></select>
           <select class="ii" id="v-filter-statut" onchange="renderVentes()"><option value="">Tous statuts</option><option>Payé</option><option>En attente</option><option>Expédié</option><option>Retour</option></select>
         </div>
+        <button class="btn btn-gh btn-sm" onclick="exportVentesCSV()">Export CSV</button>
         <button class="btn btn-g btn-sm" onclick="openVenteModal()">+ Nouvelle vente</button>
       </div>
-      <div class="panel" style="margin:0"><table><thead><tr><th style="width:24%">Article</th><th>Client</th><th>Canal</th><th>Boutique</th><th class="tnum">Montant</th><th class="tnum">Net</th><th>Statut</th><th>Date</th><th></th></tr></thead><tbody id="ventes-tbody"></tbody></table></div>
+      <div class="panel" style="margin:0"><table><thead><tr><th style="width:24%">Article</th><th>Client</th><th>Canal</th><th>Boutique</th><th class="tnum">Montant</th><th class="tnum">Net</th><th>Statut</th><th>Date</th><th></th></tr></thead><tbody id="ventes-tbody"></tbody><tfoot id="ventes-tfoot"></tfoot></table></div>
     </div>
 
     <!-- CLIENTS -->
@@ -700,6 +702,7 @@ tr:hover td{background:var(--accent-bg);cursor:pointer}
       <div class="kgrid" id="cmd-kpis"></div>
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:13px">
         <div style="display:flex;gap:7px;flex-wrap:wrap;align-items:center">
+          <input class="ii" placeholder="Article, pseudo…" id="cmd-search" style="width:160px" oninput="renderCommandes()">
           <select class="ii" id="cmd-filter-statut" onchange="renderCommandes()">
             <option value="">Tous statuts actifs</option>
             <option>Nouvelle commande</option><option>En préparation</option><option>Expédiée</option>
@@ -1079,7 +1082,7 @@ tr:hover td{background:var(--accent-bg);cursor:pointer}
       <div class="fsep">Prix & Stratégie</div>
       <div class="fg3">
         <div class="fr"><label>Prix de vente cible (€)</label><input id="st-pv" type="number" placeholder="1200" oninput="calcRevient()"></div>
-        <div class="fr"><label>Prix minimum acceptable (€)</label><input id="st-pv-min" type="number" placeholder="1000"></div>
+        <div class="fr"><label>Prix minimum de vente (€)</label><input id="st-pv-min" type="number" placeholder="ex : budget client Sourcing/PS"></div>
         <div class="fr"><label>Marge cible</label>
           <div style="padding:8px 11px;border:.5px solid var(--border);border-radius:7px;background:var(--green-bg);font-weight:500;font-size:13px;color:var(--green)" id="st-marge-display">—</div>
         </div>
@@ -2141,12 +2144,16 @@ async function saveCommande(){
 function renderCommandes(){
   const fs=document.getElementById('cmd-filter-statut')?.value||'';
   const fc=document.getElementById('cmd-filter-canal')?.value||'';
+  const fq=(document.getElementById('cmd-search')?.value||'').toLowerCase();
   const showArchived=document.getElementById('cmd-show-archived')?.checked||false;
   const ARCHIVED=['Paiement reçu','Livrée','Annulée','Remboursée'];
 
   const list=filterByShop(COMMANDES).filter(c=>{
     if(!showArchived && !fs && ARCHIVED.includes(c.statut)) return false;
-    return (!fs||c.statut===fs)&&(!fc||c.canal===fc);
+    if(fs && c.statut!==fs) return false;
+    if(fc && c.canal!==fc) return false;
+    if(fq && !`${c.article} ${c.pseudo||''} ${c.tracking||''}`.toLowerCase().includes(fq)) return false;
+    return true;
   });
 
   const nouvelles=list.filter(c=>c.statut==='Nouvelle commande').length;
@@ -2323,6 +2330,17 @@ function doSearch(q){
     }))
   });
 
+  // Achats
+  const achats = ACHATS_DB.filter(a=>`${a.nom} ${a.marque||''} ${a.vendeur||''}`.toLowerCase().includes(ql)).slice(0,3);
+  if(achats.length) sections.push({
+    label:'Achats', items: achats.map(a=>({
+      title:`${a.marque?a.marque+' ':''}${a.nom}`,
+      sub:`${a.source||'—'} · ${a.vendeur||'—'} · ${fmt(a.cout_total)}`,
+      badge:a.statut||'Reçu', badgeCls:'bw',
+      action:()=>{ nav('achats',document.querySelector('[data-sec="achats"]')); setTimeout(()=>editAchat(a.id),100); }
+    }))
+  });
+
   // Sourcing
   const src = SOURCING_DB.filter(s=>`${s.marque} ${s.modele} ${s.couleur||''}`.toLowerCase().includes(ql)).slice(0,3);
   if(src.length) sections.push({
@@ -2445,13 +2463,16 @@ function computeNotifs(){
   if(dormantPlus.length>=3) notifs.push({id:'stock-dormant',level:'amber',icon:'⏱',title:`${dormantPlus.length} articles en stock +${dormantSeuil}j`,sub:'Capital immobilisé',nav:'stock'});
 
   // PS — missions sans mise à jour depuis 7j
+  // PS — missions actives sans mise à jour depuis 7j (exclure terminées et nouvelles créations)
+  const STATUTS_PS_TERMINES = ['Livrée','Annulée','Achetée'];
   const psStale = PS_DB.filter(p=>{
-    if(['Livrée','Annulée'].includes(p.statut)) return false;
+    if(STATUTS_PS_TERMINES.includes(p.statut)) return false;
     const last = p.updated_at||p.created_at;
     if(!last) return false;
+    // Exclure si créée il y a moins de 7j (pas encore "en retard")
     return (now-new Date(last))/(1000*60*60*24)>7;
   });
-  if(psStale.length) notifs.push({id:'ps-stale',level:'amber',icon:'🛒',title:`${psStale.length} mission${psStale.length>1?'s':''} PS sans mise à jour`,sub:'Depuis +7 jours',nav:'ps'});
+  if(psStale.length) notifs.push({id:'ps-stale',level:'amber',icon:'🛒',title:`${psStale.length} mission${psStale.length>1?'s':''} PS sans mise à jour`,sub:'Depuis +7 jours — à relancer',nav:'ps'});
 
   // Commissions PS à encaisser
   const psComm = PS_DB.filter(p=>p.statut==='Achetée'&&p.commission>0);
@@ -2475,7 +2496,7 @@ function updateNotifs(){
   setBadge('commandes', filterByShop(COMMANDES).filter(c=>['Nouvelle commande','Litige ouvert','Retour demandé'].includes(c.statut)).length);
   setBadge('achats', filterByShop(ACHATS_DB).filter(a=>['En attente de réception','Litige ouvert'].includes(a.statut)).length);
   setBadge('sourcing', SOURCING_DB.filter(s=>s.urgence==='Haute'&&!['Acheté','Annulé'].includes(s.statut)).length);
-  setBadge('ps', PS_DB.filter(p=>!['Livrée','Annulée'].includes(p.statut)&&p.updated_at&&(new Date()-new Date(p.updated_at))/(1000*60*60*24)>7).length);
+  setBadge('ps', PS_DB.filter(p=>!['Livrée','Annulée','Achetée'].includes(p.statut)&&p.updated_at&&(new Date()-new Date(p.updated_at))/(1000*60*60*24)>7).length);
   const dormantCount = filterByShop(STOCK).filter(a=>a.statut!=='Vendu'&&a.date_achat&&(new Date()-new Date(a.date_achat))/(1000*60*60*24)>30).length;
   setBadge('stock', dormantCount);
 
@@ -2779,6 +2800,21 @@ function renderStock(){
         </tr>`;
       }).join('')
     : `<tr><td colspan="10"><div class="empty"><div class="empty-icon">📦</div><div class="empty-text">Aucun article</div><button class="btn btn-g btn-sm" onclick="openArticleModal()">+ Ajouter</button></div></td></tr>`;
+
+  // Tfoot — totaux
+  const tfEl = document.getElementById('stock-tfoot');
+  if(tfEl && items.length){
+    const totalCout = items.reduce((s,a)=>s+(a.cout_revient||a.prix_achat||0),0);
+    const totalPV = items.filter(a=>a.statut!=='Vendu').reduce((s,a)=>s+(a.prix_vente||0),0);
+    const margeMoy = totalPV>0?Math.round((totalPV-totalCout)/totalPV*100):0;
+    tfEl.innerHTML=`<tr>
+      <td colspan="4" style="color:var(--ink-40)">${items.length} article${items.length>1?'s':''} affichés</td>
+      <td class="tnum">${fmt(totalCout)}</td>
+      <td class="tnum">${fmt(totalPV)}</td>
+      <td class="tnum" style="color:${margeMoy<20?'var(--amber)':'var(--green)'}">${margeMoy}%</td>
+      <td colspan="3"></td>
+    </tr>`;
+  } else if(tfEl){ tfEl.innerHTML=''; }
 }
 
 function openArticleModal(){ document.getElementById('m-article-title').textContent='Ajouter un article'; document.getElementById('st-edit-id').value=''; ['st-nom','st-marque','st-pa','st-pv','st-ref','st-couleur','st-modele','st-notes','st-serial','st-frais-transport','st-frais-auth','st-frais-restau','st-frais-autres','st-source-contact','st-accessoires','st-pv-min'].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=''; }); document.getElementById('st-date-achat').value=new Date().toISOString().split('T')[0]; const ss=document.getElementById('st-statut');if(ss)ss.value='Disponible'; document.getElementById('st-stats-zone').style.display='none'; populateSelects(); openModal('m-article'); }
@@ -3019,6 +3055,42 @@ function renderVentes(){
         <div style="font-size:12px;color:var(--ink-40);margin:6px 0 12px">Les ventes apparaissent ici automatiquement quand une commande passe en "Paiement reçu", ou vous pouvez en ajouter manuellement.</div>
         <button class="btn btn-g btn-sm" onclick="openVenteModal()">+ Ajouter manuellement</button>
       </div></td></tr>`;
+
+  // Tfoot — totaux
+  const vtf = document.getElementById('ventes-tfoot');
+  if(vtf && list.length){
+    const totalBrut = list.reduce((s,v)=>s+(v.montant||0),0);
+    const totalNet = list.reduce((s,v)=>s+(v.net||v.montant||0),0);
+    vtf.innerHTML=`<tr>
+      <td colspan="4" style="color:var(--ink-40)">${list.length} vente${list.length>1?'s':''}</td>
+      <td class="tnum">${fmt(totalBrut)}</td>
+      <td class="tnum" style="color:var(--green)">${fmt(totalNet)}</td>
+      <td colspan="3"></td>
+    </tr>`;
+  } else if(vtf){ vtf.innerHTML=''; }
+}
+
+function exportVentesCSV(){
+  const fc=document.getElementById('v-filter-canal').value;
+  const fs=document.getElementById('v-filter-statut').value;
+  const fp=document.getElementById('v-filter-periode')?.value||'';
+  const now=new Date();
+  const list=filterByShop(VENTES).filter(v=>{
+    if(fc && v.canal!==fc) return false;
+    if(fs && v.statut!==fs) return false;
+    if(fp && v.date){
+      const d=new Date(v.date);
+      if(fp==='month') return d.getMonth()===now.getMonth()&&d.getFullYear()===now.getFullYear();
+      if(fp==='last3'){ const t=new Date(now); t.setMonth(t.getMonth()-3); return d>=t; }
+      if(fp==='year') return d.getFullYear()===now.getFullYear();
+    }
+    return true;
+  });
+  const cl = id => { const c=CLIENTS.find(x=>x.id===id); return c?`${c.prenom} ${c.nom}`:''; };
+  dlCSV([
+    ['Date','Article','Client','Canal','Boutique','Montant brut','Net','Commission','Statut'],
+    ...list.map(v=>[v.date,v.article,cl(v.client_id)||v.pseudo||'',v.canal,shopName(v.shop_id),v.montant,v.net||'',v.commission||'',v.statut])
+  ], `marlo_ventes_${new Date().toISOString().split('T')[0]}.csv`);
 }
 
 async function saveVente(){
@@ -3050,10 +3122,10 @@ async function saveVente(){
 }
 
 async function deleteVente(id){
-  if(!confirm('Supprimer ?')) return;
+  if(!confirm('Supprimer cette vente ? Cette action est irréversible.')) return;
   await db.from('ventes').delete().eq('id',id);
   VENTES=VENTES.filter(v=>v.id!==id);
-  renderVentes(); toast('Supprimé');
+  renderVentes(); toast('Vente supprimée');
 }
 
 // ═══════════════════════════════════════════════════════
@@ -3109,7 +3181,7 @@ function openClientProfile(id){
   const pm=ventes.length?Math.round(ca/ventes.length):0;
   const tags=[...(c.marques||'').split(','),...(c.couleurs||'').split(',')].map(t=>t.trim()).filter(Boolean);
   pv.innerHTML=`
-    <div style="display:inline-flex;align-items:center;gap:5px;font-size:12px;color:var(--ink-40);cursor:pointer;margin-bottom:13px" onclick="showClientList();renderClients()">← Retour</div>
+    <div style="display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--accent);cursor:pointer;margin-bottom:13px;font-weight:500;padding:6px 10px;background:var(--accent-bg);border-radius:7px;border:.5px solid var(--accent-border)" onclick="showClientList();renderClients()">← Retour aux clients</div>
     <div class="panel" style="margin-bottom:13px">
       <div style="background:var(--sb-bg);padding:20px 22px;display:flex;align-items:flex-start;gap:14px">
         <div style="width:48px;height:48px;border-radius:50%;background:rgba(240,192,32,.18);display:flex;align-items:center;justify-content:center;font-family:'Cormorant Garamond',serif;font-size:19px;color:var(--accent-l);flex-shrink:0">${inits(c)}</div>
@@ -4234,10 +4306,19 @@ function getAchatsCompta(){
   });
 }
 
-function getStockCoutRevient(stockId){
-  if(!stockId) return 0;
-  const a=STOCK.find(x=>x.id===stockId);
-  return a ? (a.cout_revient||a.prix_achat||0) : 0;
+function getStockCoutRevient(stockId, articleName){
+  if(stockId){
+    const a=STOCK.find(x=>x.id===stockId);
+    if(a) return a.cout_revient||a.prix_achat||0;
+  }
+  // Fallback : chercher par nom d'article dans le stock vendu
+  if(articleName){
+    const ql=articleName.toLowerCase().trim();
+    const match=STOCK.filter(a=>a.statut==='Vendu')
+      .find(a=>`${a.marque} ${a.nom}`.toLowerCase().includes(ql)||ql.includes(a.nom?.toLowerCase()));
+    if(match) return match.cout_revient||match.prix_achat||0;
+  }
+  return 0;
 }
 
 function renderCompta(){
@@ -4322,7 +4403,7 @@ function renderRecettes(){
 function renderMarges(){
   const ventes=getVentesCompta();
   const enriched=ventes.map(v=>{
-    const cout=getStockCoutRevient(v.stock_id);
+    const cout=getStockCoutRevient(v.stock_id, v.article);
     const net=v.net||v.montant||0;
     const marge=net-cout;
     const pct=net>0?Math.round(marge/net*100):0;
@@ -4375,7 +4456,7 @@ function renderTVA(){
   let totalMargeBrute=0,totalTVA=0,totalMargeNette=0;
 
   const rows=ventes.map(v=>{
-    const pa=getStockCoutRevient(v.stock_id);
+    const pa=getStockCoutRevient(v.stock_id, v.article);
     const pv=v.net||v.montant||0;
     const mb=pv-pa;
     const tva=mb>0?Math.round(mb*coef*100)/100:0;
@@ -4451,14 +4532,14 @@ function exportComptaCSV(){
   } else if(comptaTab==='marges'){
     const v=getVentesCompta();
     const h=['Date','Article','Canal','Coût revient','Prix vente net','Marge €','Marge %'];
-    const r=v.map(v=>{ const c=getStockCoutRevient(v.stock_id); const n=v.net||v.montant||0; const m=n-c; return [v.date,v.article,v.canal,c,n,m,n>0?Math.round(m/n*100)+'%':'—']; });
+    const r=v.map(v=>{ const c=getStockCoutRevient(v.stock_id, v.article); const n=v.net||v.montant||0; const m=n-c; return [v.date,v.article,v.canal,c,n,m,n>0?Math.round(m/n*100)+'%':'—']; });
     dlCSV([h,...r],`marlo_marges_${new Date().toISOString().split('T')[0]}.csv`);
   } else if(comptaTab==='tva'){
     const rate=(parseFloat(document.getElementById('tva-rate-sel')?.value)||20)/100;
     const coef=rate/(1+rate);
     const v=getVentesCompta();
     const h=['Date','Article','Prix achat','Prix vente','Marge brute','TVA collectée','Marge nette'];
-    const r=v.map(v=>{ const pa=getStockCoutRevient(v.stock_id); const pv=v.net||v.montant||0; const mb=pv-pa; const tva=mb>0?Math.round(mb*coef*100)/100:0; return [v.date,v.article,pa,pv,mb,tva,mb-tva]; });
+    const r=v.map(v=>{ const pa=getStockCoutRevient(v.stock_id, v.article); const pv=v.net||v.montant||0; const mb=pv-pa; const tva=mb>0?Math.round(mb*coef*100)/100:0; return [v.date,v.article,pa,pv,mb,tva,mb-tva]; });
     dlCSV([h,...r],`marlo_tva_${new Date().toISOString().split('T')[0]}.csv`);
   } else if(comptaTab==='bilan'){
     const av=filterByShop(VENTES).filter(v=>!['Retour','Annulée','Remboursée'].includes(v.statut));
