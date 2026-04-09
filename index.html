@@ -304,7 +304,9 @@ tr:hover td{background:var(--accent-bg);cursor:pointer}
 .ni{position:relative}
 .nb{position:absolute;right:10px;top:50%;transform:translateY(-50%);min-width:16px;height:16px;border-radius:8px;background:var(--red);color:#fff;font-size:9px;font-weight:600;display:flex;align-items:center;justify-content:center;padding:0 4px;line-height:1;pointer-events:none}
 /* ── CLOCHE NOTIFICATIONS TOPBAR ── */
-.notif-btn{position:relative;width:30px;height:30px;border-radius:7px;border:.5px solid var(--border);background:transparent;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .15s}
+.conn-dot{width:7px;height:7px;border-radius:50%;background:var(--green);transition:background .3s;flex-shrink:0}
+.conn-dot.offline{background:var(--amber)}
+.conn-dot.error{background:var(--red)}border-radius:7px;border:.5px solid var(--border);background:transparent;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .15s}
 .notif-btn:hover{background:var(--accent-bg)}
 .notif-btn svg{width:14px;height:14px;stroke:var(--ink-70);fill:none;stroke-width:1.4;stroke-linecap:round;stroke-linejoin:round}
 .notif-dot{position:absolute;top:4px;right:4px;width:7px;height:7px;border-radius:50%;background:var(--red);border:1.5px solid var(--surface);display:none}
@@ -579,6 +581,7 @@ tr:hover td{background:var(--accent-bg);cursor:pointer}
         </div>
       </div>
       <div class="shop-pill" id="shop-pill">—</div>
+      <div class="conn-dot" id="conn-dot" title="Connexion Supabase active"></div>
     </div>
   </div>
   <div class="content">
@@ -628,11 +631,12 @@ tr:hover td{background:var(--accent-bg);cursor:pointer}
     <div id="sec-stock" style="display:none">
       <div class="kgrid" id="stock-kpis"></div>
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:13px">
-        <div style="display:flex;gap:7px;flex-wrap:wrap">
+        <div style="display:flex;gap:7px;flex-wrap:wrap;align-items:center">
           <input class="ii" placeholder="Rechercher…" id="stock-search" style="width:150px" oninput="renderStock()">
           <select class="ii" id="stock-cat" onchange="renderStock()"><option value="">Toutes catégories</option><option>Sacs</option><option>Petite maroquinerie</option><option>Bijoux</option><option>Montres</option><option>Prêt-à-porter</option><option>Accessoires</option><option>Chaussures</option></select>
           <select class="ii" id="stock-statut-filter" onchange="renderStock()">
-            <option value="">Tous statuts</option>
+            <option value="actif" selected>En stock</option>
+            <option value="">Tous (incl. vendus)</option>
             <option>Disponible</option><option>Réservé</option>
             <option>En négociation</option><option>Vendu</option>
           </select>
@@ -656,6 +660,12 @@ tr:hover td{background:var(--accent-bg);cursor:pointer}
       <div class="kgrid" id="ventes-kpis"></div>
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:13px">
         <div style="display:flex;gap:7px;flex-wrap:wrap">
+          <select class="ii" id="v-filter-periode" onchange="renderVentes()">
+            <option value="">Toute la période</option>
+            <option value="month" selected>Ce mois</option>
+            <option value="last3">3 derniers mois</option>
+            <option value="year">Cette année</option>
+          </select>
           <select class="ii" id="v-filter-canal" onchange="renderVentes()"><option value="">Tous canaux</option><option>Privé</option><option>Vinted</option><option>Vestiaire</option></select>
           <select class="ii" id="v-filter-statut" onchange="renderVentes()"><option value="">Tous statuts</option><option>Payé</option><option>En attente</option><option>Expédié</option><option>Retour</option></select>
         </div>
@@ -672,6 +682,11 @@ tr:hover td{background:var(--accent-bg);cursor:pointer}
           <div style="display:flex;gap:7px">
             <input class="ii" placeholder="Rechercher…" id="cli-search" style="width:190px" oninput="renderClients()">
             <select class="ii" id="cli-canal" onchange="renderClients()"><option value="">Tous canaux</option><option>Privé</option><option>Vinted</option><option>Vestiaire</option></select>
+            <select class="ii" id="cli-statut" onchange="renderClients()">
+              <option value="">Tous statuts</option>
+              <option value="VIP">⭐ VIP uniquement</option>
+              <option value="Standard">Standard</option>
+            </select>
           </div>
           <button class="btn btn-g btn-sm" onclick="openClientModal()">+ Nouveau client</button>
         </div>
@@ -684,14 +699,17 @@ tr:hover td{background:var(--accent-bg);cursor:pointer}
     <div id="sec-commandes" style="display:none">
       <div class="kgrid" id="cmd-kpis"></div>
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:13px">
-        <div style="display:flex;gap:7px;flex-wrap:wrap">
+        <div style="display:flex;gap:7px;flex-wrap:wrap;align-items:center">
           <select class="ii" id="cmd-filter-statut" onchange="renderCommandes()">
-            <option value="">Tous statuts</option>
+            <option value="">Tous statuts actifs</option>
             <option>Nouvelle commande</option><option>En préparation</option><option>Expédiée</option>
             <option>Livrée</option><option>Paiement reçu</option><option>Litige ouvert</option>
             <option>Retour demandé</option><option>Retour reçu</option><option>Remboursée</option><option>Annulée</option>
           </select>
           <select class="ii" id="cmd-filter-canal" onchange="renderCommandes()"><option value="">Tous canaux</option><option>Privé</option><option>Vinted</option><option>Vestiaire</option></select>
+          <label style="display:flex;align-items:center;gap:5px;font-size:12px;color:var(--ink-40);cursor:pointer;text-transform:none;letter-spacing:0">
+            <input type="checkbox" id="cmd-show-archived" onchange="renderCommandes()"> Voir archivées
+          </label>
         </div>
         <button class="btn btn-g btn-sm" onclick="openCmdModal()">+ Nouvelle commande</button>
       </div>
@@ -1705,6 +1723,9 @@ async function loadAllData(){
   PS_DB      = val(ps, []);
   RESEAU_DB  = val(rz, []);
 
+  // Connexion OK → mettre le point vert
+  setConnStatus('online');
+
   // Sauvegarder en cache local pour le mode offline
   try {
     const cache = {shops:SHOPS,stock:STOCK,ventes:VENTES,clients:CLIENTS,
@@ -1713,6 +1734,12 @@ async function loadAllData(){
       ts: Date.now()};
     localStorage.setItem('marlo-cache', JSON.stringify(cache));
   } catch(e){}
+}
+
+function setConnStatus(status){
+  const dot = document.getElementById('conn-dot'); if(!dot) return;
+  dot.className = 'conn-dot' + (status==='offline'?' offline':status==='error'?' error':'');
+  dot.title = status==='online'?'Connecté à Supabase':status==='offline'?'Mode hors-ligne':'Erreur de connexion';
 }
 
 function loadFromCache(){
@@ -1730,6 +1757,7 @@ function loadFromCache(){
     SOURCING_DB= cache.sourcing||[];
     PS_DB      = cache.personal_shopping||[];
     RESEAU_DB  = cache.reseau||[];
+    setConnStatus('offline');
     return cache.ts ? cache.ts : true;
   } catch(e){ return false; }
 }
@@ -1748,7 +1776,7 @@ function showOfflineBanner(ts){
 async function retryOnline(){
   document.getElementById('offline-banner')?.remove();
   try {
-    await loadAllData();
+    await loadAllData(); // setConnStatus('online') appelé à l'intérieur
     toast('✓ Données synchronisées');
     const sec = document.querySelector('.ni.on')?.dataset?.sec||'dashboard';
     nav(sec, document.querySelector(`[data-sec="${sec}"]`));
@@ -2113,7 +2141,13 @@ async function saveCommande(){
 function renderCommandes(){
   const fs=document.getElementById('cmd-filter-statut')?.value||'';
   const fc=document.getElementById('cmd-filter-canal')?.value||'';
-  const list=filterByShop(COMMANDES).filter(c=>(!fs||c.statut===fs)&&(!fc||c.canal===fc));
+  const showArchived=document.getElementById('cmd-show-archived')?.checked||false;
+  const ARCHIVED=['Paiement reçu','Livrée','Annulée','Remboursée'];
+
+  const list=filterByShop(COMMANDES).filter(c=>{
+    if(!showArchived && !fs && ARCHIVED.includes(c.statut)) return false;
+    return (!fs||c.statut===fs)&&(!fc||c.canal===fc);
+  });
 
   const nouvelles=list.filter(c=>c.statut==='Nouvelle commande').length;
   const litiges=list.filter(c=>c.statut==='Litige ouvert').length;
@@ -2679,13 +2713,16 @@ function renderMainChart(period, filtered){
 function renderStock(){
   const search=(document.getElementById('stock-search').value||'').toLowerCase();
   const cat=document.getElementById('stock-cat').value;
-  const statutF=document.getElementById('stock-statut-filter')?.value||'';
+  const statutF=document.getElementById('stock-statut-filter')?.value||'actif';
   const dormantF=parseInt(document.getElementById('stock-dormant-filter')?.value||'0');
   const now=new Date();
 
   const items=filterByShop(STOCK).filter(a=>{
     const txt=`${a.nom} ${a.marque} ${a.ref||''}`.toLowerCase();
-    const statutOk=!statutF||(statutF==='Vendu'?a.statut==='Vendu':a.statut!=='Vendu'&&(a.statut||'Disponible')===statutF);
+    let statutOk;
+    if(statutF==='actif') statutOk = a.statut!=='Vendu';
+    else if(statutF==='') statutOk = true;
+    else statutOk = (a.statut||'Disponible')===statutF;
     const dormantOk=!dormantF||(!a.date_achat?false:(now-new Date(a.date_achat))/(1000*60*60*24)>dormantF);
     return (!search||txt.includes(search))&&(!cat||a.categorie===cat)&&statutOk&&dormantOk;
   });
@@ -2932,7 +2969,21 @@ function prefillFromStock(id){
 function renderVentes(){
   const fc=document.getElementById('v-filter-canal').value;
   const fs=document.getElementById('v-filter-statut').value;
-  const list=filterByShop(VENTES).filter(v=>(!fc||v.canal===fc)&&(!fs||v.statut===fs));
+  const fp=document.getElementById('v-filter-periode')?.value||'';
+  const now=new Date();
+
+  const list=filterByShop(VENTES).filter(v=>{
+    if(fc && v.canal!==fc) return false;
+    if(fs && v.statut!==fs) return false;
+    if(fp){
+      if(!v.date) return false;
+      const d=new Date(v.date);
+      if(fp==='month') return d.getMonth()===now.getMonth()&&d.getFullYear()===now.getFullYear();
+      if(fp==='last3'){ const t=new Date(now); t.setMonth(t.getMonth()-3); return d>=t; }
+      if(fp==='year') return d.getFullYear()===now.getFullYear();
+    }
+    return true;
+  });
   const ca=list.reduce((s,v)=>s+(v.montant||0),0);
   const net=list.reduce((s,v)=>s+(v.net||v.montant||0),0);
   const depuisCmd=list.filter(v=>v.commande_id).length;
@@ -3014,8 +3065,10 @@ function setClientCanal(btn,canal){ document.querySelectorAll('#m-client .ptab')
 function renderClients(){
   const search=(document.getElementById('cli-search').value||'').toLowerCase();
   const fc=document.getElementById('cli-canal').value;
-  const list=CLIENTS.filter(c=>(`${c.prenom} ${c.nom} ${c.email||''}`.toLowerCase().includes(search))&&(!fc||c.canal===fc));
-  const vip=list.filter(c=>c.statut==='VIP').length;
+  const fst=document.getElementById('cli-statut')?.value||'';
+  const all=CLIENTS.filter(c=>(`${c.prenom} ${c.nom} ${c.email||''}`.toLowerCase().includes(search))&&(!fc||c.canal===fc));
+  const list=fst ? all.filter(c=>(c.statut||'Standard')===fst) : all;
+  const vip=all.filter(c=>c.statut==='VIP').length;
   document.getElementById('clients-kpis').innerHTML=`
     <div class="kcard"><div class="kl">Total</div><div class="kv">${list.length}</div><div class="kd kmu">dont ${vip} VIP</div></div>
     <div class="kcard"><div class="kl">Privés</div><div class="kv">${list.filter(c=>c.canal==='Privé').length}</div><div class="kd kmu"></div></div>
@@ -3322,8 +3375,9 @@ function printInvoice(){
 function renderSettings(){
   document.getElementById('settings-email').textContent=`Compte connecté : ${USER.email}`;
   document.getElementById('btn-add-shop2').style.display=SHOPS.length>=2?'none':'';
-  // Charger les préférences sauvegardées
-  const prefs = JSON.parse(localStorage.getItem('marlo-prefs')||'{}');
+  // Charger depuis SETTINGS (Supabase) en priorité, sinon localStorage
+  const prefs = SETTINGS?.prefs ? (typeof SETTINGS.prefs==='string' ? JSON.parse(SETTINGS.prefs) : SETTINGS.prefs)
+                : JSON.parse(localStorage.getItem('marlo-prefs')||'{}');
   const psTaux = document.getElementById('settings-ps-taux'); if(psTaux) psTaux.value=prefs.ps_taux||10;
   const tvaDef = document.getElementById('settings-tva-defaut'); if(tvaDef) tvaDef.value=prefs.tva_defaut||20;
   const dormant = document.getElementById('settings-dormant-jours'); if(dormant) dormant.value=prefs.dormant_jours||30;
@@ -3345,17 +3399,30 @@ function renderSettings(){
     </div>`).join('');
 }
 
-function savePreferences(){
+async function savePreferences(){
   const prefs = {
     ps_taux: parseFloat(document.getElementById('settings-ps-taux')?.value)||10,
     tva_defaut: parseFloat(document.getElementById('settings-tva-defaut')?.value)||20,
     dormant_jours: parseInt(document.getElementById('settings-dormant-jours')?.value)||30,
   };
+  // Sauvegarder en localStorage (offline)
   localStorage.setItem('marlo-prefs', JSON.stringify(prefs));
-  toast('Préférences enregistrées');
+  // Sauvegarder dans Supabase (multi-appareils)
+  try {
+    const {data} = await db.from('settings').upsert({
+      user_id: USER.id, prefs: JSON.stringify(prefs)
+    }, {onConflict:'user_id'}).select().single();
+    if(data) SETTINGS = data;
+  } catch(e){}
+  toast('Préférences enregistrées ✓');
 }
 
-function getPrefs(){ return JSON.parse(localStorage.getItem('marlo-prefs')||'{}'); }
+function getPrefs(){
+  if(SETTINGS?.prefs){
+    try{ return typeof SETTINGS.prefs==='string' ? JSON.parse(SETTINGS.prefs) : SETTINGS.prefs; }catch(e){}
+  }
+  return JSON.parse(localStorage.getItem('marlo-prefs')||'{}');
+}
 
 function exportAllCSV(){
   const date = new Date().toISOString().split('T')[0];
