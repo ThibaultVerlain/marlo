@@ -2662,17 +2662,11 @@ function closeMobileSidebar(){
   document.getElementById('sb-overlay')?.classList.remove('show');
 }
 
-// Fermer sidebar mobile quand on navigue
-const _origNav = nav;
-function nav(id, el){
-  closeMobileSidebar();
-  _origNav(id, el);
-}
-
 const TITLES={dashboard:'Dashboard',stock:'Stock & Inventaire',ventes:'Ventes',commandes:'Commandes',achats:'Achats',clients:'Clients',sourcing:'Sourcing',ps:'Personal Shopping',reseau:'Réseau',factures:'Factures',compta:'Comptabilité',parametres:'Paramètres'};
 const SECS=['dashboard','stock','ventes','commandes','achats','clients','sourcing','ps','reseau','factures','compta','parametres'];
 
 function nav(id,el){
+  closeMobileSidebar();
   SECS.forEach(s=>{ document.getElementById('sec-'+s).style.display=s===id?'':'none'; });
   document.getElementById('page-title').textContent=TITLES[id]||id;
   document.querySelectorAll('.ni').forEach(n=>n.classList.remove('on'));
@@ -3386,7 +3380,17 @@ async function addClientNote(id){
 // ═══════════════════════════════════════════════════════
 // FACTURES
 // ═══════════════════════════════════════════════════════
-function openFactureModal(){ populateSelects(); checkFactShop(); openModal('m-facture'); }
+function openFactureModal(){
+  const prefs = getPrefs();
+  const tvaEl = document.getElementById('f-tva-rate');
+  if(tvaEl) tvaEl.value = prefs.tva_defaut||20;
+  // Reset other fields
+  ['f-ht','f-tva-amt','f-ttc','f-objet','f-mentions'].forEach(id=>{
+    const el=document.getElementById(id); if(el&&el.tagName!=='INPUT'||el?.type!=='number') { if(el) el.value=el.id==='f-tva-rate'?prefs.tva_defaut||20:''; }
+  });
+  document.getElementById('f-date').value = new Date().toISOString().split('T')[0];
+  populateSelects(); checkFactShop(); openModal('m-facture');
+}
 function calcTVA(){ const ht=parseFloat(document.getElementById('f-ht').value)||0; const r=parseFloat(document.getElementById('f-tva-rate').value)||20; const tva=Math.round(ht*r)/100; document.getElementById('f-tva-amt').value=tva.toFixed(2); document.getElementById('f-ttc').value=(ht+tva).toFixed(2); }
 function checkFactShop(){ const id=document.getElementById('f-boutique').value; const s=SHOPS.find(x=>x.id===id); document.getElementById('f-warning').style.display=(!s||!s.declared)?'':'none'; }
 function toggleSeLegal(){ document.getElementById('se-legal').style.display=document.getElementById('se-declared').value==='true'?'':'none'; }
@@ -3896,14 +3900,17 @@ function openPSModal(){
   ['ps-titre','ps-lieux','ps-ville','ps-articles-demandes','ps-articles-achetes','ps-notes'].forEach(id=>{
     const el=document.getElementById(id); if(el) el.value='';
   });
-  ['ps-budget','ps-taux','ps-frais-deplacement','ps-frais-autres','ps-montant-achete','ps-commission-reelle'].forEach(id=>{
+  ['ps-budget','ps-frais-deplacement','ps-frais-autres','ps-montant-achete','ps-commission-reelle'].forEach(id=>{
     const el=document.getElementById(id); if(el) el.value='';
   });
+  // Injecter le taux par défaut depuis les préférences
+  const prefs = getPrefs();
+  const tauxEl = document.getElementById('ps-taux');
+  if(tauxEl) tauxEl.value = prefs.ps_taux||10;
   document.getElementById('ps-comm-display').textContent = '0 €';
   document.getElementById('ps-date').value = new Date().toISOString().split('T')[0];
   document.getElementById('ps-date-livraison').value = '';
   document.getElementById('ps-statut').value = 'Demande reçue';
-  // Populate client select
   const sc=document.getElementById('ps-client');
   sc.innerHTML = `<option value="">— Sélectionner —</option>` +
     CLIENTS.filter(c=>c.canal==='Privé').map(c=>`<option value="${c.id}">${c.prenom} ${c.nom}</option>`).join('');
