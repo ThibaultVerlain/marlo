@@ -3572,6 +3572,7 @@ function renderReseau(){
         <input class="ii" id="qnote-${r.id}" placeholder="Note rapide…" style="flex:1;font-size:11px;padding:5px 8px"
           onkeydown="if(event.key==='Enter'){event.preventDefault();addQuickNote('${r.id}');}">
         <button class="btn btn-gh btn-sm" style="flex-shrink:0;font-size:11px;padding:4px 8px" onclick="addQuickNote('${r.id}')">+ Note</button>
+        <button class="btn btn-r btn-sm" style="flex-shrink:0;padding:4px 8px" onclick="deleteReseau('${r.id}')" title="Supprimer">✕</button>
       </div>
     </div>`;
   }).join('');
@@ -4189,20 +4190,22 @@ function renderCompta(){
 function renderRecettes(){
   const ventes=getVentesCompta();
   const psCompta=PS_DB.filter(p=>p.statut==='Livrée'&&p.commission>0);
-  // Commissions sourcing = sourcing aboutis avec une commission renseignée
   const srcCompta=SOURCING_DB.filter(s=>s.statut==='Acheté'&&s.commission&&parseFloat(s.commission)>0);
+  const achats=getAchatsCompta();
 
   const totalBrut=ventes.reduce((s,v)=>s+(v.montant||0),0);
   const totalNet=ventes.reduce((s,v)=>s+(v.net||v.montant||0),0);
   const totalPS=psCompta.reduce((s,p)=>s+(p.commission||0),0);
   const totalSrc=srcCompta.reduce((s,x)=>s+parseFloat(x.commission||0),0);
+  const totalAchats=achats.reduce((s,a)=>s+(a.cout_total||0),0);
   const totalRevenu=totalNet+totalPS+totalSrc;
 
   document.getElementById('compta-kpis-recettes').innerHTML=`
     <div class="kcard"><div class="kl">CA ventes</div><div class="kv">${fmt(totalBrut)}</div><div class="kd kmu">${ventes.length} ventes</div></div>
-    <div class="kcard"><div class="kl">Net encaissé (ventes)</div><div class="kv">${fmt(totalNet)}</div><div class="kd kmu">après commissions plateformes</div></div>
+    <div class="kcard"><div class="kl">Net encaissé</div><div class="kv">${fmt(totalNet)}</div><div class="kd kmu">après commissions plateformes</div></div>
     <div class="kcard"><div class="kl">Commissions PS + Sourcing</div><div class="kv" style="color:var(--green)">${fmt(totalPS+totalSrc)}</div><div class="kd kup">${psCompta.length+srcCompta.length} missions</div></div>
-    <div class="kcard"><div class="kl">Revenu total réel</div><div class="kv" style="color:var(--accent)">${fmt(totalRevenu)}</div><div class="kd kup">ventes + PS + sourcing</div></div>`;
+    <div class="kcard"><div class="kl">Total achats période</div><div class="kv" style="color:var(--amber)">${fmt(totalAchats)}</div><div class="kd kmu">${achats.length} achats</div></div>
+    <div class="kcard" style="grid-column:1/-1;background:var(--accent-bg);border-color:var(--accent-border)"><div class="kl">Revenu total réel</div><div class="kv" style="color:var(--accent)">${fmt(totalRevenu)}</div><div class="kd kup">ventes nettes + commissions PS &amp; sourcing</div></div>`;
 
   const rows = [
     ...ventes.map(v=>{
