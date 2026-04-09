@@ -1725,11 +1725,15 @@ async function doLogin(){
   const {data,error} = await db.auth.signInWithPassword({email,password:pwd});
   btn.disabled=false; btn.textContent='Se connecter';
   if(error){ showErr('auth-error',error.message); return; }
-  // Connexion réussie — charger les données et lancer l'app
   USER = data.user;
   document.getElementById('auth-screen').style.display='none';
   document.getElementById('loading').style.display='flex';
-  await loadAllData();
+  try {
+    await loadAllData();
+  } catch(e){
+    const ts = loadFromCache();
+    if(ts) showOfflineBanner(typeof ts==='number'?ts:null);
+  }
   document.getElementById('loading').style.display='none';
   if(SHOPS.length===0){ document.getElementById('onboarding').style.display='flex'; }
   else{ showApp(); }
@@ -1771,7 +1775,10 @@ async function doReset(){
 
 async function doLogout(){
   await db.auth.signOut();
-  USER=null; SHOPS=[]; STOCK=[]; VENTES=[]; CLIENTS=[]; FACTURES=[]; 
+  USER=null;
+  SHOPS=[]; STOCK=[]; VENTES=[]; CLIENTS=[]; FACTURES=[];
+  ACHATS_DB=[]; COMMANDES=[]; SOURCING_DB=[]; PS_DB=[]; RESEAU_DB=[];
+  SETTINGS=null;
   document.getElementById('app').style.display='none';
   document.getElementById('auth-screen').style.display='flex';
   switchAuthTab('login');
@@ -3402,7 +3409,7 @@ function toggleSeLegal(){ document.getElementById('se-legal').style.display=docu
 
 function renderFactures(){
   const fs=document.getElementById('fact-filter-statut').value;
-  const list=FACTURES.filter(f=>(!fs||f.statut===fs));
+  const list=filterByShop(FACTURES).filter(f=>(!fs||f.statut===fs));
   const total=list.reduce((s,f)=>s+(f.montant_ttc||0),0);
   const paid=list.filter(f=>f.statut==='Payée').reduce((s,f)=>s+(f.montant_ttc||0),0);
   document.getElementById('fact-kpis').innerHTML=`
@@ -3435,14 +3442,15 @@ async function saveFacture(){
   if(error){ toast('Erreur: '+error.message); return; }
   FACTURES.unshift(data);
   SETTINGS.invoice_counter=(SETTINGS.invoice_counter||1)+1;
-  await db.from('settings').upsert({user_id:USER.id,invoice_counter:SETTINGS.invoice_counter});
+  const prefs = SETTINGS.prefs || null;
+  await db.from('settings').upsert({user_id:USER.id, invoice_counter:SETTINGS.invoice_counter, ...(prefs?{prefs}:{})}, {onConflict:'user_id'});
   closeModal('m-facture'); renderFactures(); toast(`Facture ${num} créée`);
 }
 
 async function deleteFacture(id){
-  if(!confirm('Supprimer ?')) return;
+  if(!confirm('Supprimer cette facture ? Cette action est irréversible.')) return;
   await db.from('factures').delete().eq('id',id);
-  FACTURES=FACTURES.filter(f=>f.id!==id); renderFactures(); toast('Supprimée');
+  FACTURES=FACTURES.filter(f=>f.id!==id); renderFactures(); toast('Facture supprimée');
 }
 
 function buildInvoiceHTML(f){
