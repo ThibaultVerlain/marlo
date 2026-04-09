@@ -326,6 +326,98 @@ tr:hover td{background:var(--accent-bg);cursor:pointer}
 .notif-empty{padding:24px;text-align:center;font-size:12px;color:var(--ink-40)}
 .topbar-r{position:relative}
 tfoot tr td{padding:8px 10px;font-size:12px;font-weight:500;border-top:.5px solid var(--border-s);background:var(--bg2);color:var(--ink-70)}
+
+/* ══════════════════════════════════════════════════
+   RESPONSIVE — Tablette (≤1024px)
+   ══════════════════════════════════════════════════ */
+@media(max-width:1024px){
+  :root{--sb:170px}
+  .kgrid{grid-template-columns:repeat(2,1fr)}
+  .kgrid.k3{grid-template-columns:repeat(3,1fr)}
+  .content{padding:16px 18px}
+  .topbar{padding:10px 18px}
+  .search-wrap{max-width:200px}
+}
+
+/* ══════════════════════════════════════════════════
+   RESPONSIVE — Mobile (≤768px)
+   ══════════════════════════════════════════════════ */
+@media(max-width:768px){
+  /* Sidebar cachée par défaut sur mobile */
+  .sb{transform:translateX(-100%);transition:transform .28s cubic-bezier(.4,0,.2,1);z-index:300}
+  .sb.mob-open{transform:translateX(0)}
+  .main{margin-left:0!important}
+
+  /* Overlay sidebar mobile */
+  #sb-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:299}
+  #sb-overlay.show{display:block}
+
+  /* Topbar mobile */
+  .topbar{padding:10px 14px;gap:8px}
+  .topbar-title{font-size:16px}
+  .search-wrap{max-width:none;flex:1;min-width:0}
+  .shop-pill{display:none}
+
+  /* Hamburger */
+  #mob-menu-btn{display:flex}
+
+  /* Content */
+  .content{padding:12px 14px}
+
+  /* KPIs — 2 colonnes sur mobile */
+  .kgrid{grid-template-columns:1fr 1fr;gap:8px;margin-bottom:13px}
+  .kgrid.k3{grid-template-columns:1fr 1fr}
+  .kv{font-size:20px}
+
+  /* Grilles 2 colonnes → 1 colonne */
+  .g2,.g2e{grid-template-columns:1fr!important}
+  div[style*="grid-template-columns:1fr 1fr"]{grid-template-columns:1fr!important}
+
+  /* Tables — scroll horizontal */
+  .panel{overflow-x:auto}
+  table{min-width:600px}
+
+  /* Modals plein écran */
+  .ov{padding:0;align-items:flex-end}
+  .modal{max-width:100%!important;max-height:94vh;border-radius:16px 16px 0 0}
+
+  /* Forms — 1 colonne */
+  .fg,.fg3{grid-template-columns:1fr!important}
+
+  /* Kanban sourcing — 1 colonne */
+  #src-kanban{grid-template-columns:1fr!important}
+
+  /* Réseau grille — 1 colonne */
+  #reseau-grid{grid-template-columns:1fr!important}
+
+  /* Notification panel — pleine largeur */
+  .notif-panel{width:calc(100vw - 28px);right:-60px}
+
+  /* Search results — pleine largeur */
+  .search-results{position:fixed;top:52px;left:14px;right:14px;width:auto}
+
+  /* Comptabilité tabs — scroll */
+  #compta-tabs{overflow-x:auto;flex-wrap:nowrap;padding-bottom:4px}
+  .ptab{white-space:nowrap}
+
+  /* Settings — colonnes réduites */
+  .fg3{grid-template-columns:1fr!important}
+
+  /* Badges légèrement plus lisibles */
+  .badge{font-size:10px}
+  .sb-section,.kl,.fr label{font-size:9px}
+
+  /* Barre actions modules */
+  div[style*="justify-content:space-between"]{flex-wrap:wrap;gap:8px}
+  
+  /* KPI card condensé */
+  .kcard{padding:10px 11px}
+  .kl{font-size:9px}
+}
+
+/* Hamburger button — caché sur desktop */
+#mob-menu-btn{display:none;width:34px;height:34px;border-radius:8px;border:.5px solid rgba(255,255,255,.15);background:transparent;cursor:pointer;align-items:center;justify-content:center;flex-shrink:0}
+#mob-menu-btn span{display:block;width:14px;height:1.5px;background:var(--ink-70);margin:2.5px auto;border-radius:1px;transition:all .2s}
 </style>
 </head>
 <body>
@@ -335,6 +427,9 @@ tfoot tr td{padding:8px 10px;font-size:12px;font-weight:500;border-top:.5px soli
   <div class="loading-logo">Marlo</div>
   <div class="loading-dot"><span></span><span></span><span></span></div>
 </div>
+
+<!-- OVERLAY SIDEBAR MOBILE -->
+<div id="sb-overlay" onclick="closeMobileSidebar()"></div>
 
 <!-- AUTH SCREEN -->
 <div id="auth-screen">
@@ -559,6 +654,9 @@ tfoot tr td{padding:8px 10px;font-size:12px;font-weight:500;border-top:.5px soli
 
 <main class="main">
   <div class="topbar">
+    <button id="mob-menu-btn" onclick="toggleMobileSidebar()" aria-label="Menu">
+      <span></span><span></span><span></span>
+    </button>
     <div class="topbar-title" id="page-title">Dashboard</div>
     <div class="topbar-r" style="flex:1;justify-content:flex-end;gap:9px">
       <!-- Recherche globale -->
@@ -2551,6 +2649,25 @@ document.addEventListener('click', e=>{
     panel.classList.remove('open');
   }
 });
+
+// ── MOBILE SIDEBAR ──
+function toggleMobileSidebar(){
+  const sb = document.querySelector('.sb');
+  const ov = document.getElementById('sb-overlay');
+  sb.classList.toggle('mob-open');
+  ov.classList.toggle('show');
+}
+function closeMobileSidebar(){
+  document.querySelector('.sb')?.classList.remove('mob-open');
+  document.getElementById('sb-overlay')?.classList.remove('show');
+}
+
+// Fermer sidebar mobile quand on navigue
+const _origNav = nav;
+function nav(id, el){
+  closeMobileSidebar();
+  _origNav(id, el);
+}
 
 const TITLES={dashboard:'Dashboard',stock:'Stock & Inventaire',ventes:'Ventes',commandes:'Commandes',achats:'Achats',clients:'Clients',sourcing:'Sourcing',ps:'Personal Shopping',reseau:'Réseau',factures:'Factures',compta:'Comptabilité',parametres:'Paramètres'};
 const SECS=['dashboard','stock','ventes','commandes','achats','clients','sourcing','ps','reseau','factures','compta','parametres'];
