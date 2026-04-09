@@ -1082,6 +1082,11 @@ tr:hover td{background:var(--accent-bg);cursor:pointer}
       <div class="fr"><label>Accessoires inclus</label><input id="st-accessoires" placeholder="Dustbag, boîte, cadenas, reçu d'achat…"></div>
       <div class="fr"><label>Notes / Défauts</label><textarea id="st-notes" placeholder="Décrivez l'état, les défauts éventuels, l'histoire de la pièce…"></textarea></div>
       <input type="hidden" id="st-edit-id">
+      <!-- Stats article — visible uniquement en mode édition -->
+      <div id="st-stats-zone" style="display:none;margin-top:16px;border-top:.5px solid var(--border);padding-top:14px">
+        <div style="font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-40);margin-bottom:10px">Statistiques — articles similaires vendus</div>
+        <div id="st-stats-content"></div>
+      </div>
     </div>
     <div class="mf"><button class="btn btn-gh" onclick="closeModal('m-article')">Annuler</button><button class="btn btn-g" onclick="saveArticle()">Enregistrer l'article</button></div>
   </div>
@@ -1660,7 +1665,6 @@ async function doLogout(){
 async function loadAllData(){
   const uid = USER.id;
 
-  // Fonction helper — jamais throw, retourne toujours un tableau
   const q = (table, opts={}) => {
     let query = db.from(table).select('*').eq('user_id', uid);
     if(opts.order) query = query.order(opts.order, {ascending: opts.asc ?? false});
@@ -1700,6 +1704,58 @@ async function loadAllData(){
   SOURCING_DB= val(src,[]);
   PS_DB      = val(ps, []);
   RESEAU_DB  = val(rz, []);
+
+  // Sauvegarder en cache local pour le mode offline
+  try {
+    const cache = {shops:SHOPS,stock:STOCK,ventes:VENTES,clients:CLIENTS,
+      factures:FACTURES,achats:ACHATS_DB,commandes:COMMANDES,
+      sourcing:SOURCING_DB,personal_shopping:PS_DB,reseau:RESEAU_DB,
+      ts: Date.now()};
+    localStorage.setItem('marlo-cache', JSON.stringify(cache));
+  } catch(e){}
+}
+
+function loadFromCache(){
+  try {
+    const raw = localStorage.getItem('marlo-cache');
+    if(!raw) return false;
+    const cache = JSON.parse(raw);
+    SHOPS      = cache.shops||[];
+    STOCK      = cache.stock||[];
+    VENTES     = cache.ventes||[];
+    CLIENTS    = cache.clients||[];
+    FACTURES   = cache.factures||[];
+    ACHATS_DB  = cache.achats||[];
+    COMMANDES  = cache.commandes||[];
+    SOURCING_DB= cache.sourcing||[];
+    PS_DB      = cache.personal_shopping||[];
+    RESEAU_DB  = cache.reseau||[];
+    return cache.ts ? cache.ts : true;
+  } catch(e){ return false; }
+}
+
+function showOfflineBanner(ts){
+  const existing = document.getElementById('offline-banner');
+  if(existing) return;
+  const date = ts ? new Date(ts).toLocaleDateString('fr-FR',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'}) : '—';
+  const banner = document.createElement('div');
+  banner.id = 'offline-banner';
+  banner.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:9000;background:var(--amber);color:#fff;font-size:12px;font-weight:500;text-align:center;padding:7px 16px;display:flex;align-items:center;justify-content:center;gap:12px';
+  banner.innerHTML = `⚠ Mode hors-ligne — données du ${date} <button onclick="retryOnline()" style="background:rgba(255,255,255,.3);border:none;border-radius:5px;padding:2px 10px;font-size:11px;cursor:pointer;color:#fff;font-family:inherit">Réessayer</button> <button onclick="document.getElementById('offline-banner').remove()" style="background:none;border:none;cursor:pointer;color:rgba(255,255,255,.8);font-size:14px">×</button>`;
+  document.body.prepend(banner);
+}
+
+async function retryOnline(){
+  document.getElementById('offline-banner')?.remove();
+  try {
+    await loadAllData();
+    toast('✓ Données synchronisées');
+    const sec = document.querySelector('.ni.on')?.dataset?.sec||'dashboard';
+    nav(sec, document.querySelector(`[data-sec="${sec}"]`));
+  } catch(e){
+    const ts = loadFromCache();
+    showOfflineBanner(typeof ts === 'number' ? ts : null);
+  }
 }
 
 // ═══════════════════════════════════════════════════════
@@ -2018,6 +2074,36 @@ async function saveCommande(){
   if(stockId&&sold.includes(obj.statut)){
     try{await db.from('stock').update({statut:'Vendu'}).eq('id',stockId);}catch(e){}
     const a=STOCK.find(x=>x.id===stockId);if(a)a.statut='Vendu';
+  }
+
+  // Si paiement reçu pour la première fois → créer automatiquement dans Ventes
+  const wasPaid = editId ? ['Paiement reçu','Livrée'].includes(COMMANDES.find(c=>c.id===editId)?.statut||'') : false;
+  if(obj.statut==='Paiement reçu' && !wasPaid){
+    const venteExists = VENTES.find(v=>v.commande_id===saved.id);
+    if(!venteExists){
+      const vObj={
+        user_id:USER.id, shop_id:obj.shop_id,
+        stock_id:obj.stock_id||null,
+        client_id:resolvedClientId||null,
+        pseudo:obj.pseudo||null,
+        canal:obj.canal,
+        article:obj.article,
+        montant:obj.montant||0,
+        net:obj.net||obj.montant||0,
+        commission:obj.montant&&obj.net?Math.round((obj.montant-obj.net)*100)/100:0,
+        statut:'Payé',
+        date:obj.date_livraison||obj.date_commande||new Date().toISOString().split('T')[0],
+        notes:`Depuis commande${obj.tracking?' — tracking: '+obj.tracking:''}`,
+        commande_id:saved.id,
+        source_email:false,
+      };
+      try{
+        const {data}=await db.from('ventes').insert(vObj).select().single();
+        if(data) VENTES.unshift(data);
+        else VENTES.unshift({...vObj,id:String(Date.now())});
+      }catch(e){ VENTES.unshift({...vObj,id:String(Date.now())}); }
+      toast('✓ Vente créée automatiquement depuis la commande');
+    }
   }
 
   closeModal('m-commande');renderCommandes();populateSelects();
@@ -2494,7 +2580,7 @@ function renderDash(){
           <div style="font-size:11px;color:var(--ink-40)">${canalBadge(c.canal)} ${fmtD(c.date_commande)}</div></div>
         <span class="badge ${c.statut==='Litige ouvert'?'br':c.statut==='Nouvelle commande'?'bw':'bs'}" style="font-size:9px;flex-shrink:0">${c.statut}</span>
       </div>`).join('')
-    : `<div class="empty" style="padding:20px"><div class="empty-text">Aucune commande en cours</div></div>`;
+    : `<div class="empty" style="padding:20px"><div class="empty-text">Aucune commande en cours</div><div style="font-size:11px;color:var(--ink-40);margin:5px 0 10px">Les nouvelles commandes Vinted et Vestiaire apparaîtront ici</div><button class="btn btn-gh btn-sm" onclick="nav('commandes',document.querySelector('[data-sec=commandes]'))">+ Nouvelle commande</button></div>`;
 
   // ── Sourcing urgents ──
   const srcUrgList = SOURCING_DB.filter(s=>!['Acheté','Annulé'].includes(s.statut))
@@ -2513,7 +2599,7 @@ function renderDash(){
           <span class="badge bw" style="font-size:9px;flex-shrink:0">${s.statut}</span>
         </div>`;
       }).join('')
-    : `<div class="empty" style="padding:20px"><div class="empty-text">Aucun sourcing actif</div></div>`;
+    : `<div class="empty" style="padding:20px"><div class="empty-text">Aucun sourcing actif</div><div style="font-size:11px;color:var(--ink-40);margin:5px 0 10px">Créez une demande quand un client cherche une pièce précise</div><button class="btn btn-gh btn-sm" onclick="nav('sourcing',document.querySelector('[data-sec=sourcing]'))">+ Nouvelle demande</button></div>`;
 
   // ── Stock dormant ──
   const dormant = filterByShop(STOCK).filter(a=>{
@@ -2532,7 +2618,7 @@ function renderDash(){
           <span style="font-size:11px;font-weight:500;color:${jours>60?'var(--red)':'var(--amber)'};flex-shrink:0">${jours}j</span>
         </div>`;
       }).join('')
-    : `<div class="empty" style="padding:16px"><div class="empty-text">Aucun stock dormant ✓</div></div>`;
+    : `<div class="empty" style="padding:20px"><div style="font-size:20px;margin-bottom:5px">✓</div><div class="empty-text" style="color:var(--green)">Aucun stock dormant</div><div style="font-size:11px;color:var(--ink-40);margin-top:4px">Tous vos articles bougent bien</div></div>`;
 
   // ── Missions PS en cours ──
   const psActives = PS_DB.filter(p=>!['Livrée','Annulée'].includes(p.statut)).slice(0,4);
@@ -2550,7 +2636,7 @@ function renderDash(){
           </div>
         </div>`;
       }).join('')
-    : `<div class="empty" style="padding:16px"><div class="empty-text">Aucune mission active</div></div>`;
+    : `<div class="empty" style="padding:20px"><div class="empty-text">Aucune mission PS active</div><div style="font-size:11px;color:var(--ink-40);margin:5px 0 10px">Créez une mission quand vous accompagnez un client en boutique</div><button class="btn btn-gh btn-sm" onclick="nav('ps',document.querySelector('[data-sec=ps]'))">+ Nouvelle mission</button></div>`;
 
   renderMainChart(period, filtered);
 }
@@ -2658,7 +2744,83 @@ function renderStock(){
     : `<tr><td colspan="10"><div class="empty"><div class="empty-icon">📦</div><div class="empty-text">Aucun article</div><button class="btn btn-g btn-sm" onclick="openArticleModal()">+ Ajouter</button></div></td></tr>`;
 }
 
-function openArticleModal(){ document.getElementById('m-article-title').textContent='Ajouter un article'; document.getElementById('st-edit-id').value=''; ['st-nom','st-marque','st-pa','st-pv','st-ref','st-couleur','st-modele','st-notes','st-serial','st-frais-transport','st-frais-auth','st-frais-restau','st-frais-autres','st-source-contact','st-accessoires','st-pv-min'].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=''; }); document.getElementById('st-date-achat').value=new Date().toISOString().split('T')[0]; const ss=document.getElementById('st-statut');if(ss)ss.value='Disponible'; populateSelects(); openModal('m-article'); }
+function openArticleModal(){ document.getElementById('m-article-title').textContent='Ajouter un article'; document.getElementById('st-edit-id').value=''; ['st-nom','st-marque','st-pa','st-pv','st-ref','st-couleur','st-modele','st-notes','st-serial','st-frais-transport','st-frais-auth','st-frais-restau','st-frais-autres','st-source-contact','st-accessoires','st-pv-min'].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=''; }); document.getElementById('st-date-achat').value=new Date().toISOString().split('T')[0]; const ss=document.getElementById('st-statut');if(ss)ss.value='Disponible'; document.getElementById('st-stats-zone').style.display='none'; populateSelects(); openModal('m-article'); }
+
+function computeArticleStats(article){
+  const zone = document.getElementById('st-stats-zone');
+  const content = document.getElementById('st-stats-content');
+  if(!zone||!content) return;
+
+  // Articles similaires = même marque OU même catégorie, déjà vendus
+  const similaires = STOCK.filter(a =>
+    a.id !== article.id &&
+    a.statut === 'Vendu' &&
+    (a.marque === article.marque || a.categorie === article.categorie)
+  );
+
+  if(similaires.length === 0){
+    zone.style.display = '';
+    content.innerHTML = `<div style="font-size:12px;color:var(--ink-40)">Pas encore de données de vente pour des articles similaires (${article.marque||article.categorie}).</div>`;
+    return;
+  }
+
+  // Calculer temps de vente (date_achat → vente)
+  const avecTemps = similaires.map(a => {
+    const vente = VENTES.find(v => v.stock_id === a.id);
+    const jours = (a.date_achat && vente?.date)
+      ? Math.round((new Date(vente.date) - new Date(a.date_achat)) / (1000*60*60*24))
+      : null;
+    const marge = a.prix_vente && (a.cout_revient||a.prix_achat)
+      ? Math.round((a.prix_vente - (a.cout_revient||a.prix_achat)) / a.prix_vente * 100)
+      : null;
+    return { ...a, jours, marge, pv: a.prix_vente||0 };
+  }).filter(a => a.jours !== null && a.jours >= 0);
+
+  const tousJours = avecTemps.map(a => a.jours);
+  const tousPrix = avecTemps.map(a => a.pv).filter(p => p > 0);
+  const tousMarges = avecTemps.map(a => a.marge).filter(m => m !== null);
+
+  const moy = arr => arr.length ? Math.round(arr.reduce((s,x)=>s+x,0)/arr.length) : null;
+  const min = arr => arr.length ? Math.min(...arr) : null;
+  const max = arr => arr.length ? Math.max(...arr) : null;
+
+  const moyJours = moy(tousJours);
+  const minJours = min(tousJours);
+  const maxJours = max(tousJours);
+  const moyPrix = moy(tousPrix);
+  const moyMarge = moy(tousMarges);
+
+  // Articles récents similaires (5 derniers)
+  const recents = [...avecTemps].sort((a,b) => new Date(b.date_achat) - new Date(a.date_achat)).slice(0,4);
+
+  zone.style.display = '';
+  content.innerHTML = `
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px">
+      <div style="background:var(--bg2);border-radius:8px;padding:10px 12px;text-align:center">
+        <div style="font-size:10px;color:var(--ink-40);margin-bottom:3px">Temps moyen de vente</div>
+        <div style="font-size:18px;font-weight:300;color:${moyJours&&moyJours>60?'var(--amber)':'var(--green)'}">${moyJours !== null ? moyJours+'j' : '—'}</div>
+        <div style="font-size:10px;color:var(--ink-40)">${minJours !== null ? minJours+'j — '+maxJours+'j' : ''}</div>
+      </div>
+      <div style="background:var(--bg2);border-radius:8px;padding:10px 12px;text-align:center">
+        <div style="font-size:10px;color:var(--ink-40);margin-bottom:3px">Prix de vente moyen</div>
+        <div style="font-size:18px;font-weight:300">${moyPrix !== null ? fmt(moyPrix) : '—'}</div>
+        <div style="font-size:10px;color:var(--ink-40)">${avecTemps.length} ventes</div>
+      </div>
+      <div style="background:var(--bg2);border-radius:8px;padding:10px 12px;text-align:center">
+        <div style="font-size:10px;color:var(--ink-40);margin-bottom:3px">Marge moyenne</div>
+        <div style="font-size:18px;font-weight:300;color:${moyMarge&&moyMarge<20?'var(--amber)':'var(--green)'}">${moyMarge !== null ? moyMarge+'%' : '—'}</div>
+        <div style="font-size:10px;color:var(--ink-40)">sur prix de vente</div>
+      </div>
+    </div>
+    ${recents.length ? `<div style="font-size:11px;color:var(--ink-40);margin-bottom:6px">Articles vendus similaires :</div>
+    ${recents.map(a=>`
+      <div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:.5px solid var(--border)">
+        <div style="flex:1;font-size:12px">${a.marque} ${a.nom}</div>
+        <span class="badge bw" style="font-size:9px">${a.etat||'—'}</span>
+        <div style="font-size:12px;font-weight:500">${fmt(a.pv)}</div>
+        <div style="font-size:11px;color:var(--ink-40)">${a.jours}j</div>
+      </div>`).join('')}` : ''}`;
+}
 
 async function saveArticle(){
   const editId=document.getElementById('st-edit-id').value;
@@ -2731,6 +2893,8 @@ function editArticle(id){
   const ss=document.getElementById('st-statut'); if(ss) ss.value=a.statut||'Disponible';
   const rc=document.getElementById('st-reserve-client'); if(rc) rc.value=a.reserve_client_id||'';
   calcRevient();
+  // Stats articles similaires
+  computeArticleStats(a);
   openModal('m-article');
 }
 
@@ -2771,25 +2935,39 @@ function renderVentes(){
   const list=filterByShop(VENTES).filter(v=>(!fc||v.canal===fc)&&(!fs||v.statut===fs));
   const ca=list.reduce((s,v)=>s+(v.montant||0),0);
   const net=list.reduce((s,v)=>s+(v.net||v.montant||0),0);
-  const att=list.filter(v=>v.statut==='En attente').length;
+  const depuisCmd=list.filter(v=>v.commande_id).length;
+  const manuelles=list.length-depuisCmd;
+
   document.getElementById('ventes-kpis').innerHTML=`
     <div class="kcard"><div class="kl">CA total</div><div class="kv">${fmt(ca)}</div><div class="kd kmu">${list.length} ventes</div></div>
-    <div class="kcard"><div class="kl">Net reçu</div><div class="kv">${fmt(net)}</div><div class="kd kmu">après commissions</div></div>
-    <div class="kcard"><div class="kl">En attente</div><div class="kv">${att}</div><div class="kd ${att>0?'kdn':'kmu'}">à traiter</div></div>
-    <div class="kcard"><div class="kl">Retours</div><div class="kv">${list.filter(v=>v.statut==='Retour').length}</div><div class="kd kmu"></div></div>`;
-  document.getElementById('ventes-tbody').innerHTML=list.length
-    ? list.map(v=>{ const cl=CLIENTS.find(c=>c.id===v.client_id); return `<tr>
-        <td style="font-weight:500">${v.article}</td>
-        <td style="color:var(--ink-40);font-size:12px">${cl?`${cl.prenom} ${cl.nom}`:v.pseudo||'—'}</td>
-        <td>${canalBadge(v.canal)}</td>
-        <td style="color:var(--ink-40);font-size:12px">${shopName(v.shop_id)}</td>
-        <td class="tnum">${fmt(v.montant)}</td>
-        <td class="tnum" style="color:var(--ink-40)">${v.net?fmt(v.net):'—'}</td>
-        <td>${statutBadge(v.statut)}</td>
-        <td style="color:var(--ink-40);font-size:12px">${fmtD(v.date)}</td>
-        <td><button class="btn btn-r btn-sm" onclick="deleteVente('${v.id}')">✕</button></td>
-      </tr>`; }).join('')
-    : `<tr><td colspan="9"><div class="empty"><div class="empty-icon">💰</div><div class="empty-text">Aucune vente</div><button class="btn btn-g btn-sm" onclick="openVenteModal()">+ Ajouter</button></div></td></tr>`;
+    <div class="kcard"><div class="kl">Net encaissé</div><div class="kv">${fmt(net)}</div><div class="kd kmu">après commissions</div></div>
+    <div class="kcard"><div class="kl">Depuis commandes</div><div class="kv">${depuisCmd}</div><div class="kd kmu">auto-créées</div></div>
+    <div class="kcard"><div class="kl">Saisies manuellement</div><div class="kv">${manuelles}</div><div class="kd kmu">Privé / direct</div></div>`;
+
+  document.getElementById('ventes-tbody').innerHTML = list.length
+    ? list.map(v=>{
+        const cl=CLIENTS.find(c=>c.id===v.client_id);
+        return `<tr>
+          <td>
+            <div style="font-weight:500">${v.article}</div>
+            ${v.commande_id?`<div style="font-size:10px;color:var(--accent);margin-top:2px">↗ depuis commande</div>`:''}
+          </td>
+          <td style="color:var(--ink-40);font-size:12px">${cl?`${cl.prenom} ${cl.nom}`:v.pseudo||'—'}</td>
+          <td>${canalBadge(v.canal)}</td>
+          <td style="color:var(--ink-40);font-size:12px">${shopName(v.shop_id)}</td>
+          <td class="tnum">${fmt(v.montant)}</td>
+          <td class="tnum" style="color:var(--ink-40)">${v.net?fmt(v.net):'—'}</td>
+          <td>${statutBadge(v.statut)}</td>
+          <td style="color:var(--ink-40);font-size:12px">${fmtD(v.date)}</td>
+          <td><button class="btn btn-r btn-sm" onclick="deleteVente('${v.id}')">✕</button></td>
+        </tr>`;
+      }).join('')
+    : `<tr><td colspan="9"><div class="empty">
+        <div class="empty-icon">💰</div>
+        <div class="empty-text">Aucune vente pour l'instant</div>
+        <div style="font-size:12px;color:var(--ink-40);margin:6px 0 12px">Les ventes apparaissent ici automatiquement quand une commande passe en "Paiement reçu", ou vous pouvez en ajouter manuellement.</div>
+        <button class="btn btn-g btn-sm" onclick="openVenteModal()">+ Ajouter manuellement</button>
+      </div></td></tr>`;
 }
 
 async function saveVente(){
@@ -3046,13 +3224,95 @@ function previewFacture(){
   const shop=SHOPS.find(s=>s.id===shopId); if(!shop||!shop.declared){ alert('Boutique non déclarée.'); return; }
   const tf={id:'tmp',numero:'APERÇU',shop_id:shopId,client_id:document.getElementById('f-client').value,objet:document.getElementById('f-objet').value,montant_ht:parseFloat(document.getElementById('f-ht').value)||0,tva_rate:parseFloat(document.getElementById('f-tva-rate').value)||20,tva_amount:parseFloat(document.getElementById('f-tva-amt').value)||0,montant_ttc:parseFloat(document.getElementById('f-ttc').value)||0,date_emission:document.getElementById('f-date').value,date_echeance:document.getElementById('f-echeance').value,mentions:document.getElementById('f-mentions').value};
   document.getElementById('invoice-html').innerHTML=buildInvoiceHTML(tf);
+  window._currentInvoice = tf;
   openModal('m-invoice-preview');
 }
-function previewFactureById(id){ const f=FACTURES.find(x=>x.id===id); if(!f) return; document.getElementById('invoice-html').innerHTML=buildInvoiceHTML(f); openModal('m-invoice-preview'); }
+function previewFactureById(id){ const f=FACTURES.find(x=>x.id===id); if(!f) return; document.getElementById('invoice-html').innerHTML=buildInvoiceHTML(f); window._currentInvoice=f; openModal('m-invoice-preview'); }
 function printInvoice(){
-  const el=document.getElementById('invoice-html'); if(!el) return;
-  const w=window.open('','_blank');
-  w.document.write(`<html><head><meta charset="UTF-8"><title>Facture Marlo</title><link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet"><style>*{box-sizing:border-box;margin:0;padding:0}body{font-family:'DM Sans',sans-serif;font-size:12px;color:#1A1710;padding:40px;background:#fff}.inv-title{font-family:'Cormorant Garamond',serif;font-size:22px;color:#9A7608}table{width:100%;border-collapse:collapse;font-size:11px;margin:14px 0}th{background:#1A1710;color:#F2ECD8;padding:6px 9px;font-weight:400;text-align:left}td{padding:6px 9px;border-bottom:.5px solid #e0d8c8}@media print{body{padding:20px}}</style></head><body>${el.innerHTML}<script>window.print();window.close();<\/script></body></html>`);
+  const f = window._currentInvoice;
+  const shop = f ? (SHOPS.find(s=>s.id===f.shop_id)||{}) : {};
+  const client = f ? (CLIENTS.find(c=>c.id===f.client_id)||{}) : {};
+
+  const css = `
+    *{box-sizing:border-box;margin:0;padding:0}
+    @page{size:A4;margin:20mm 18mm}
+    body{font-family:'DM Sans',Arial,sans-serif;font-size:11px;color:#1A1710;background:#fff;line-height:1.5}
+    .header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:28px;padding-bottom:18px;border-bottom:1px solid #e0d0c0}
+    .logo{font-family:'Cormorant Garamond',Georgia,serif;font-size:28px;color:#9B1B2E;font-weight:300;letter-spacing:.12em;margin-bottom:6px}
+    .title{font-family:'Cormorant Garamond',Georgia,serif;font-size:22px;font-weight:400;letter-spacing:.1em;color:#1A1710;margin-bottom:4px}
+    .meta{font-size:10px;color:#888;margin-top:2px}
+    .shop-info{text-align:right;font-size:11px;color:#555}
+    .shop-name{font-size:14px;font-weight:500;color:#1A1710;margin-bottom:3px}
+    .bill-to{margin-bottom:24px;padding:12px 14px;background:#FAF8F3;border-left:3px solid #9B1B2E}
+    .bill-label{font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:#aaa;margin-bottom:5px}
+    .bill-name{font-weight:500;font-size:13px}
+    table{width:100%;border-collapse:collapse;margin:20px 0;font-size:11px}
+    thead tr{background:#1A1710}
+    th{color:#F2ECD8;padding:8px 10px;font-weight:400;text-align:left;font-size:10px;letter-spacing:.06em}
+    td{padding:9px 10px;border-bottom:.5px solid #e8e0d0;vertical-align:top}
+    .amount{text-align:right}
+    .totals{margin-left:auto;margin-top:8px;width:240px}
+    .total-row{display:flex;justify-content:space-between;padding:4px 0;font-size:11px;color:#666}
+    .total-final{display:flex;justify-content:space-between;padding:9px 0 4px;border-top:2px solid #9B1B2E;font-size:14px;font-weight:500;margin-top:4px}
+    .total-final span:last-child{color:#9B1B2E}
+    .mentions{margin-top:28px;padding-top:14px;border-top:.5px solid #e0d0c0;font-size:10px;color:#888;line-height:1.6}
+    .footer{position:fixed;bottom:12mm;left:18mm;right:18mm;text-align:center;font-size:9px;color:#bbb;border-top:.5px solid #eee;padding-top:6px}
+    .badge-statut{display:inline-block;padding:2px 8px;border-radius:4px;font-size:9px;font-weight:500;background:${f?.statut==='Payée'?'#E4F2E8':'#FDF0DC'};color:${f?.statut==='Payée'?'#1E6630':'#7A4400'}}
+  `;
+
+  const body = `
+    <div class="header">
+      <div>
+        <div class="logo">Marlo</div>
+        <div class="title">FACTURE</div>
+        <div class="meta">N° ${f?.numero||'—'}</div>
+        <div class="meta">Émise le ${fmtD(f?.date_emission)}</div>
+        <div class="meta">Échéance : ${fmtD(f?.date_echeance)}</div>
+        <div style="margin-top:8px"><span class="badge-statut">${f?.statut||'En attente'}</span></div>
+      </div>
+      <div class="shop-info">
+        <div class="shop-name">${shop.name||'—'}</div>
+        ${shop.forme?`<div>${shop.forme}</div>`:''}
+        ${shop.address?`<div>${shop.address}</div>`:''}
+        ${shop.siret?`<div>SIRET : ${shop.siret}</div>`:''}
+        ${shop.tva_number?`<div>N° TVA : ${shop.tva_number}</div>`:''}
+        ${shop.email?`<div>${shop.email}</div>`:''}
+      </div>
+    </div>
+
+    <div class="bill-to">
+      <div class="bill-label">Facturer à</div>
+      <div class="bill-name">${client.prenom||''} ${client.nom||''}</div>
+      ${client.email?`<div style="color:#666;font-size:11px">${client.email}</div>`:''}
+    </div>
+
+    <table>
+      <thead><tr>
+        <th style="width:55%">Description</th>
+        <th class="amount">Montant HT</th>
+        <th class="amount">TVA ${f?.tva_rate||20}%</th>
+        <th class="amount">TTC</th>
+      </tr></thead>
+      <tbody><tr>
+        <td>${f?.objet||'Vente article luxe'}</td>
+        <td class="amount">${fmt(f?.montant_ht)}</td>
+        <td class="amount">${fmt(f?.tva_amount)}</td>
+        <td class="amount" style="font-weight:500">${fmt(f?.montant_ttc)}</td>
+      </tr></tbody>
+    </table>
+
+    <div class="totals">
+      <div class="total-row"><span>Sous-total HT</span><span>${fmt(f?.montant_ht)}</span></div>
+      <div class="total-row"><span>TVA (${f?.tva_rate||20}%)</span><span>${fmt(f?.tva_amount)}</span></div>
+      <div class="total-final"><span>Total TTC</span><span>${fmt(f?.montant_ttc)}</span></div>
+    </div>
+
+    ${f?.mentions?`<div class="mentions">${f.mentions}</div>`:''}
+    <div class="footer">Marlo — Outil de gestion luxe · Facture générée le ${new Date().toLocaleDateString('fr-FR')}</div>
+  `;
+
+  const w = window.open('','_blank');
+  w.document.write(`<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"><title>Facture ${f?.numero||''}</title><link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet"><style>${css}</style></head><body>${body}<script>window.onload=()=>{window.print();}<\/script></body></html>`);
   w.document.close();
 }
 
@@ -3281,41 +3541,38 @@ function renderReseau(){
     const initials = [(r.prenom||'')[0],(r.nom||r.societe||'')[0]].filter(Boolean).join('').toUpperCase()||'?';
     const journal = (()=>{ try{ return JSON.parse(r.journal||'[]'); }catch(e){ return []; } })();
     const lastEntry = journal[0];
-    const tags = (r.tags||'').split(',').map(t=>t.trim()).filter(Boolean);
     const marques = (r.marques||'').split(',').map(t=>t.trim()).filter(Boolean).slice(0,3);
-    return `<div onclick="editReseau('${r.id}')" style="background:var(--surface);border:.5px solid var(--border);border-radius:var(--r);padding:16px;cursor:pointer;transition:background .15s" onmouseenter="this.style.background='var(--accent-bg)'" onmouseleave="this.style.background='var(--surface)'">
-      <!-- Header -->
-      <div style="display:flex;align-items:flex-start;gap:10px;margin-bottom:11px">
-        <div style="width:38px;height:38px;border-radius:50%;background:var(--accent-bg);border:.5px solid var(--accent-border);display:flex;align-items:center;justify-content:center;font-family:'Cormorant Garamond',serif;font-size:15px;font-weight:400;color:var(--accent);flex-shrink:0">${initials}</div>
-        <div style="flex:1;min-width:0">
-          <div style="font-weight:500;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${[r.prenom,r.nom].filter(Boolean).join(' ')||r.societe||'—'}</div>
-          ${r.societe&&(r.prenom||r.nom)?`<div style="font-size:11px;color:var(--ink-40);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${r.societe}</div>`:''}
-        </div>
-        <div style="text-align:right;flex-shrink:0">
-          <span class="badge ${RZ_TYPE_COLORS[r.type]||'bw'}" style="font-size:9px">${r.type}</span>
-          <div style="font-size:12px;color:${r.fiabilite>=4?'var(--green)':r.fiabilite<=2?'var(--red)':'var(--amber)'};margin-top:3px">
-            ${'★'.repeat(r.fiabilite||3)}${'☆'.repeat(5-(r.fiabilite||3))}
+    return `<div style="background:var(--surface);border:.5px solid var(--border);border-radius:var(--r);padding:16px;transition:background .15s">
+      <!-- Header cliquable -->
+      <div onclick="editReseau('${r.id}')" style="cursor:pointer">
+        <div style="display:flex;align-items:flex-start;gap:10px;margin-bottom:10px">
+          <div style="width:36px;height:36px;border-radius:50%;background:var(--accent-bg);border:.5px solid var(--accent-border);display:flex;align-items:center;justify-content:center;font-family:'Cormorant Garamond',serif;font-size:15px;color:var(--accent);flex-shrink:0">${initials}</div>
+          <div style="flex:1;min-width:0">
+            <div style="font-weight:500;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${[r.prenom,r.nom].filter(Boolean).join(' ')||r.societe||'—'}</div>
+            ${r.societe&&(r.prenom||r.nom)?`<div style="font-size:11px;color:var(--ink-40)">${r.societe}</div>`:''}
+          </div>
+          <div style="text-align:right;flex-shrink:0">
+            <span class="badge ${RZ_TYPE_COLORS[r.type]||'bw'}" style="font-size:9px">${r.type}</span>
+            <div style="font-size:11px;color:${r.fiabilite>=4?'var(--green)':r.fiabilite<=2?'var(--red)':'var(--amber)'};margin-top:3px">${'★'.repeat(r.fiabilite||3)}${'☆'.repeat(5-(r.fiabilite||3))}</div>
           </div>
         </div>
+        ${r.ville||r.pays?`<div style="font-size:11px;color:var(--ink-40);margin-bottom:7px">📍 ${[r.ville,r.pays].filter(Boolean).join(', ')}</div>`:''}
+        ${marques.length?`<div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:7px">${marques.map(m=>`<span style="background:var(--accent-bg);color:var(--accent);border:.5px solid var(--accent-border);border-radius:4px;padding:1px 6px;font-size:10px">${m}</span>`).join('')}</div>`:''}
+        <div style="display:flex;gap:8px;margin-bottom:8px">
+          ${r.telephone?`<a href="tel:${r.telephone}" onclick="event.stopPropagation()" style="font-size:10px;color:var(--ink-40);text-decoration:none">📞 ${r.telephone}</a>`:''}
+          ${r.instagram?`<a href="https://instagram.com/${r.instagram.replace('@','')}" target="_blank" onclick="event.stopPropagation()" style="font-size:10px;color:var(--accent);text-decoration:none">IG ${r.instagram}</a>`:''}
+        </div>
+        ${lastEntry?`<div style="background:var(--bg2);border-radius:5px;padding:6px 8px;font-size:11px;color:var(--ink-70);border-left:2px solid var(--accent-border);margin-bottom:10px">
+          <div style="font-size:9px;color:var(--ink-40);margin-bottom:2px">${fmtD(lastEntry.date)}</div>
+          <div style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${lastEntry.text}</div>
+        </div>`:''}
       </div>
-
-      <!-- Localisation -->
-      ${r.ville||r.pays?`<div style="font-size:11px;color:var(--ink-40);margin-bottom:8px">📍 ${[r.ville,r.pays].filter(Boolean).join(', ')}</div>`:''}
-
-      <!-- Marques -->
-      ${marques.length?`<div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:8px">${marques.map(m=>`<span style="background:var(--accent-bg);color:var(--accent);border:.5px solid var(--accent-border);border-radius:4px;padding:1px 7px;font-size:10px">${m}</span>`).join('')}</div>`:''}
-
-      <!-- Contacts rapides -->
-      <div style="display:flex;gap:8px;margin-bottom:${lastEntry?'10px':'0'}">
-        ${r.telephone?`<a href="tel:${r.telephone}" onclick="event.stopPropagation()" style="font-size:10px;color:var(--ink-40);text-decoration:none;display:flex;align-items:center;gap:3px">📞 ${r.telephone}</a>`:''}
-        ${r.instagram?`<a href="https://instagram.com/${r.instagram.replace('@','')}" target="_blank" onclick="event.stopPropagation()" style="font-size:10px;color:var(--accent);text-decoration:none">IG ${r.instagram}</a>`:''}
+      <!-- Note rapide -->
+      <div style="display:flex;gap:6px;margin-top:6px" onclick="event.stopPropagation()">
+        <input class="ii" id="qnote-${r.id}" placeholder="Note rapide…" style="flex:1;font-size:11px;padding:5px 8px"
+          onkeydown="if(event.key==='Enter'){event.preventDefault();addQuickNote('${r.id}');}">
+        <button class="btn btn-gh btn-sm" style="flex-shrink:0;font-size:11px;padding:4px 8px" onclick="addQuickNote('${r.id}')">+ Note</button>
       </div>
-
-      <!-- Dernière entrée journal -->
-      ${lastEntry?`<div style="background:var(--bg2);border-radius:5px;padding:6px 8px;font-size:11px;color:var(--ink-70);border-left:2px solid var(--accent-border)">
-        <div style="font-size:9px;color:var(--ink-40);margin-bottom:2px">${fmtD(lastEntry.date)}</div>
-        <div style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${lastEntry.text}</div>
-      </div>`:''}
     </div>`;
   }).join('');
 }
@@ -3343,6 +3600,20 @@ function editReseau(id){
   document.getElementById('rz-journal-data').value = JSON.stringify(journal);
   renderJournalList(journal);
   openModal('m-reseau');
+}
+
+async function addQuickNote(id){
+  const input = document.getElementById(`qnote-${id}`);
+  const txt = input?.value?.trim(); if(!txt) return;
+  const r = RESEAU_DB.find(x=>x.id===id); if(!r) return;
+  const journal = (()=>{ try{ return JSON.parse(r.journal||'[]'); }catch(e){ return []; } })();
+  journal.unshift({ date: new Date().toISOString(), text: txt });
+  const newJournal = JSON.stringify(journal);
+  try{ await db.from('reseau').update({journal:newJournal}).eq('id',id); }catch(e){}
+  r.journal = newJournal;
+  if(input) input.value = '';
+  renderReseau();
+  toast('Note ajoutée');
 }
 
 async function deleteReseau(id){
@@ -3918,20 +4189,21 @@ function renderCompta(){
 function renderRecettes(){
   const ventes=getVentesCompta();
   const psCompta=PS_DB.filter(p=>p.statut==='Livrée'&&p.commission>0);
+  // Commissions sourcing = sourcing aboutis avec une commission renseignée
+  const srcCompta=SOURCING_DB.filter(s=>s.statut==='Acheté'&&s.commission&&parseFloat(s.commission)>0);
+
   const totalBrut=ventes.reduce((s,v)=>s+(v.montant||0),0);
   const totalNet=ventes.reduce((s,v)=>s+(v.net||v.montant||0),0);
-  const totalComm=ventes.reduce((s,v)=>s+(v.commission||0),0);
-  const totalAchats=getAchatsCompta().reduce((s,a)=>s+(a.cout_total||0),0);
   const totalPS=psCompta.reduce((s,p)=>s+(p.commission||0),0);
-  const totalRevenu=totalNet+totalPS;
+  const totalSrc=srcCompta.reduce((s,x)=>s+parseFloat(x.commission||0),0);
+  const totalRevenu=totalNet+totalPS+totalSrc;
 
   document.getElementById('compta-kpis-recettes').innerHTML=`
-    <div class="kcard"><div class="kl">Chiffre d'affaires ventes</div><div class="kv">${fmt(totalBrut)}</div><div class="kd kmu">${ventes.length} ventes</div></div>
-    <div class="kcard"><div class="kl">Net encaissé (ventes)</div><div class="kv">${fmt(totalNet)}</div><div class="kd kmu">après commissions</div></div>
-    <div class="kcard"><div class="kl">Commissions PS encaissées</div><div class="kv" style="color:var(--green)">${fmt(totalPS)}</div><div class="kd kup">${psCompta.length} missions</div></div>
-    <div class="kcard"><div class="kl">Revenu total réel</div><div class="kv" style="color:var(--accent)">${fmt(totalRevenu)}</div><div class="kd kup">ventes + PS</div></div>`;
+    <div class="kcard"><div class="kl">CA ventes</div><div class="kv">${fmt(totalBrut)}</div><div class="kd kmu">${ventes.length} ventes</div></div>
+    <div class="kcard"><div class="kl">Net encaissé (ventes)</div><div class="kv">${fmt(totalNet)}</div><div class="kd kmu">après commissions plateformes</div></div>
+    <div class="kcard"><div class="kl">Commissions PS + Sourcing</div><div class="kv" style="color:var(--green)">${fmt(totalPS+totalSrc)}</div><div class="kd kup">${psCompta.length+srcCompta.length} missions</div></div>
+    <div class="kcard"><div class="kl">Revenu total réel</div><div class="kv" style="color:var(--accent)">${fmt(totalRevenu)}</div><div class="kd kup">ventes + PS + sourcing</div></div>`;
 
-  // Recettes ventes
   const rows = [
     ...ventes.map(v=>{
       const cl=CLIENTS.find(c=>c.id===v.client_id);
@@ -3953,10 +4225,21 @@ function renderRecettes(){
         <td style="font-weight:500">${p.titre||'Mission PS'}</td>
         <td><span class="badge bs">Personal Shopping</span></td>
         <td style="font-size:12px;color:var(--ink-40)">${cl?`${cl.prenom} ${cl.nom}`:'—'}</td>
-        <td class="tnum">—</td>
-        <td class="tnum">—</td>
+        <td class="tnum">—</td><td class="tnum">—</td>
         <td class="tnum" style="font-weight:500;color:var(--green)">${fmt(p.commission)}</td>
         <td><span class="badge bp">Livrée</span></td>
+      </tr>`;
+    }),
+    ...srcCompta.map(s=>{
+      const cl=CLIENTS.find(c=>c.id===s.client_id);
+      return `<tr style="background:var(--blue-bg)">
+        <td style="color:var(--ink-40);font-size:12px">${fmtD(s.updated_at)}</td>
+        <td style="font-weight:500">${s.marque} ${s.modele}</td>
+        <td><span class="badge bw">Sourcing</span></td>
+        <td style="font-size:12px;color:var(--ink-40)">${cl?`${cl.prenom} ${cl.nom}`:'—'}</td>
+        <td class="tnum">—</td><td class="tnum">—</td>
+        <td class="tnum" style="font-weight:500;color:var(--blue)">${fmt(parseFloat(s.commission))}</td>
+        <td><span class="badge bp">Acheté</span></td>
       </tr>`;
     }),
   ];
@@ -4143,10 +4426,15 @@ async function boot(){
     const session = result?.data?.session;
     if(session){
       USER = session.user;
-      // Utilisateur déjà connecté — cacher auth, montrer loading pendant chargement
       document.getElementById('auth-screen').style.display = 'none';
       document.getElementById('loading').style.display = 'flex';
-      await loadAllData();
+      try {
+        await loadAllData();
+      } catch(e){
+        const ts = loadFromCache();
+        if(typeof ts === 'number') showOfflineBanner(ts);
+        else if(ts) showOfflineBanner(null);
+      }
       document.getElementById('loading').style.display = 'none';
       if(SHOPS.length === 0){
         document.getElementById('onboarding').style.display = 'flex';
