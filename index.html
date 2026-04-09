@@ -284,7 +284,23 @@ tr:hover td{background:var(--accent-bg);cursor:pointer}
 .inv-table{width:100%;border-collapse:collapse;margin:14px 0;font-size:11.5px}
 .inv-table th{background:var(--ink);color:#F2ECD8;padding:6px 9px;font-weight:400;letter-spacing:.07em;text-align:left}
 .inv-table td{padding:6px 9px;border-bottom:.5px solid var(--border)}
-/* ── BADGES NOTIFICATIONS SIDEBAR ── */
+/* ── RECHERCHE GLOBALE ── */
+.search-wrap{position:relative;flex:1;max-width:320px}
+.search-input{width:100%;padding:6px 32px 6px 30px;border:.5px solid var(--border);border-radius:8px;background:var(--bg2);color:var(--ink);font-size:13px;font-family:inherit;outline:none;transition:all .15s}
+.search-input:focus{border-color:var(--accent);background:var(--surface)}
+.search-input::placeholder{color:var(--ink-40)}
+.search-icon{position:absolute;left:9px;top:50%;transform:translateY(-50%);width:13px;height:13px;stroke:var(--ink-40);fill:none;stroke-width:1.5;stroke-linecap:round;pointer-events:none}
+.search-results{position:absolute;top:calc(100% + 6px);left:0;right:0;background:var(--surface);border:.5px solid var(--border-s);border-radius:10px;box-shadow:0 8px 32px rgba(0,0,0,.14);z-index:600;display:none;max-height:420px;overflow-y:auto}
+.search-results.open{display:block}
+.sr-section{padding:6px 12px 4px;font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-40);border-bottom:.5px solid var(--ink-12)}
+.sr-item{display:flex;align-items:center;gap:9px;padding:8px 12px;cursor:pointer;transition:background .12s;border-bottom:.5px solid var(--ink-12)}
+.sr-item:hover{background:var(--accent-bg)}
+.sr-item:last-child{border-bottom:none}
+.sr-badge{font-size:9px;letter-spacing:.06em;text-transform:uppercase;border-radius:4px;padding:2px 6px;flex-shrink:0}
+.sr-main{flex:1;min-width:0}
+.sr-title{font-size:13px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sr-sub{font-size:11px;color:var(--ink-40);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sr-empty{padding:20px;text-align:center;font-size:12px;color:var(--ink-40)}
 .ni{position:relative}
 .nb{position:absolute;right:10px;top:50%;transform:translateY(-50%);min-width:16px;height:16px;border-radius:8px;background:var(--red);color:#fff;font-size:9px;font-weight:600;display:flex;align-items:center;justify-content:center;padding:0 4px;line-height:1;pointer-events:none}
 /* ── CLOCHE NOTIFICATIONS TOPBAR ── */
@@ -541,7 +557,13 @@ tr:hover td{background:var(--accent-bg);cursor:pointer}
 <main class="main">
   <div class="topbar">
     <div class="topbar-title" id="page-title">Dashboard</div>
-    <div class="topbar-r">
+    <div class="topbar-r" style="flex:1;justify-content:flex-end;gap:9px">
+      <!-- Recherche globale -->
+      <div class="search-wrap">
+        <svg class="search-icon" viewBox="0 0 14 14"><circle cx="6" cy="6" r="4"/><path d="M10 10l3 3"/></svg>
+        <input class="search-input" id="global-search" placeholder="Rechercher dans Marlo…" oninput="onSearch(this.value)" autocomplete="off">
+        <div class="search-results" id="search-results"></div>
+      </div>
       <!-- Cloche notifications -->
       <div style="position:relative">
         <button class="notif-btn" onclick="toggleNotifPanel()" id="notif-btn" title="Notifications">
@@ -2125,6 +2147,146 @@ function populateSelects(){
 // NAVIGATION
 // ═══════════════════════════════════════════════════════
 // ═══════════════════════════════════════════════════════
+// RECHERCHE GLOBALE
+// ═══════════════════════════════════════════════════════
+let searchTimer = null;
+
+function onSearch(q){
+  clearTimeout(searchTimer);
+  const results = document.getElementById('search-results');
+  if(!q||q.trim().length<2){ results.classList.remove('open'); return; }
+  searchTimer = setTimeout(()=>{ doSearch(q.trim()); }, 150);
+}
+
+function doSearch(q){
+  const ql = q.toLowerCase();
+  const results = document.getElementById('search-results');
+  const sections = [];
+
+  // Stock
+  const stock = STOCK.filter(a=>`${a.nom} ${a.marque} ${a.ref||''} ${a.couleur||''}`.toLowerCase().includes(ql)).slice(0,4);
+  if(stock.length) sections.push({
+    label:'Stock', items: stock.map(a=>({
+      title:`${a.marque} ${a.nom}`, sub:`${a.categorie||'—'} · ${a.cout_revient?fmt(a.cout_revient):'—'}`,
+      badge:a.statut||'Disponible', badgeCls:'bp',
+      action:()=>{ nav('stock',document.querySelector('[data-sec="stock"]')); setTimeout(()=>editArticle(a.id),100); }
+    }))
+  });
+
+  // Clients
+  const clients = CLIENTS.filter(c=>`${c.prenom} ${c.nom} ${c.email||''} ${c.telephone||''}`.toLowerCase().includes(ql)).slice(0,4);
+  if(clients.length) sections.push({
+    label:'Clients', items: clients.map(c=>({
+      title:`${c.prenom} ${c.nom}`, sub:`${c.canal} · ${c.email||'—'}`,
+      badge:c.statut||'Standard', badgeCls:c.statut==='VIP'?'bvip':'bw',
+      action:()=>{ nav('clients',document.querySelector('[data-sec="clients"]')); setTimeout(()=>openClientProfile(c.id),100); }
+    }))
+  });
+
+  // Commandes
+  const cmds = COMMANDES.filter(c=>`${c.article} ${c.pseudo||''} ${c.tracking||''}`.toLowerCase().includes(ql)).slice(0,3);
+  if(cmds.length) sections.push({
+    label:'Commandes', items: cmds.map(c=>({
+      title:c.article, sub:`${c.canal} · ${fmtD(c.date_commande)}`,
+      badge:c.statut, badgeCls:c.statut==='Litige ouvert'?'br':c.statut==='Paiement reçu'?'bp':'bw',
+      action:()=>{ nav('commandes',document.querySelector('[data-sec="commandes"]')); setTimeout(()=>editCommande(c.id),100); }
+    }))
+  });
+
+  // Ventes
+  const ventes = VENTES.filter(v=>`${v.article} ${v.pseudo||''}`.toLowerCase().includes(ql)).slice(0,3);
+  if(ventes.length) sections.push({
+    label:'Ventes', items: ventes.map(v=>({
+      title:v.article, sub:`${v.canal} · ${fmtD(v.date)} · ${fmt(v.montant)}`,
+      badge:v.statut, badgeCls:v.statut==='Payé'?'bp':'bw',
+      action:()=>nav('ventes',document.querySelector('[data-sec="ventes"]'))
+    }))
+  });
+
+  // Sourcing
+  const src = SOURCING_DB.filter(s=>`${s.marque} ${s.modele} ${s.couleur||''}`.toLowerCase().includes(ql)).slice(0,3);
+  if(src.length) sections.push({
+    label:'Sourcing', items: src.map(s=>{
+      const cl=CLIENTS.find(c=>c.id===s.client_id);
+      return {
+        title:`${s.marque} ${s.modele}`, sub:`${cl?cl.prenom+' '+cl.nom:'—'} · ${s.urgence}`,
+        badge:s.statut, badgeCls:SRC_COLORS[s.statut]||'bw',
+        action:()=>{ nav('sourcing',document.querySelector('[data-sec="sourcing"]')); setTimeout(()=>editSourcing(s.id),100); }
+      };
+    })
+  });
+
+  // Personal Shopping
+  const ps = PS_DB.filter(p=>`${p.titre||''} ${p.ville||''} ${p.lieux||''}`.toLowerCase().includes(ql)).slice(0,3);
+  if(ps.length) sections.push({
+    label:'Personal Shopping', items: ps.map(p=>{
+      const cl=CLIENTS.find(c=>c.id===p.client_id);
+      return {
+        title:p.titre||'Mission', sub:`${cl?cl.prenom+' '+cl.nom:'—'} · ${p.ville||'—'}`,
+        badge:p.statut, badgeCls:PS_STATUTS_COLORS[p.statut]||'bw',
+        action:()=>{ nav('ps',document.querySelector('[data-sec="ps"]')); setTimeout(()=>editPS(p.id),100); }
+      };
+    })
+  });
+
+  // Réseau
+  const rz = RESEAU_DB.filter(r=>`${r.prenom||''} ${r.nom||''} ${r.societe||''} ${r.marques||''} ${r.ville||''}`.toLowerCase().includes(ql)).slice(0,3);
+  if(rz.length) sections.push({
+    label:'Réseau', items: rz.map(r=>({
+      title:`${r.prenom||''} ${r.nom||''}`.trim()||r.societe||'—',
+      sub:`${r.type} · ${r.ville||'—'}`,
+      badge:'★'.repeat(r.fiabilite||3), badgeCls:'bw',
+      action:()=>{ nav('reseau',document.querySelector('[data-sec="reseau"]')); setTimeout(()=>editReseau(r.id),100); }
+    }))
+  });
+
+  if(sections.length===0){
+    results.innerHTML=`<div class="sr-empty">Aucun résultat pour « ${q} »</div>`;
+  } else {
+    results.innerHTML = sections.map(s=>`
+      <div class="sr-section">${s.label}</div>
+      ${s.items.map((item,i)=>`
+        <div class="sr-item" id="sr-item-${s.label}-${i}" onclick="selectSearchResult(${s.label}-${i})">
+          <div class="sr-main">
+            <div class="sr-title">${item.title}</div>
+            <div class="sr-sub">${item.sub}</div>
+          </div>
+          <span class="sr-badge badge ${item.badgeCls}">${item.badge}</span>
+        </div>`).join('')}
+    `).join('');
+
+    // Stocker les actions dans un map temporaire
+    window._srActions = {};
+    sections.forEach(s=>s.items.forEach((item,i)=>{
+      window._srActions[`${s.label}-${i}`] = item.action;
+      const el = document.getElementById(`sr-item-${s.label}-${i}`);
+      if(el) el.onclick = ()=>{ closeSearch(); item.action(); };
+    }));
+  }
+
+  results.classList.add('open');
+}
+
+function closeSearch(){
+  document.getElementById('search-results').classList.remove('open');
+  document.getElementById('global-search').value='';
+}
+
+// Fermer recherche si clic extérieur ou Échap
+document.addEventListener('click', e=>{
+  const wrap = document.querySelector('.search-wrap');
+  if(wrap && !wrap.contains(e.target)) document.getElementById('search-results').classList.remove('open');
+});
+document.addEventListener('keydown', e=>{
+  if(e.key==='Escape') closeSearch();
+  // Ctrl+K ou Cmd+K pour focus recherche
+  if((e.ctrlKey||e.metaKey)&&e.key==='k'){
+    e.preventDefault();
+    document.getElementById('global-search')?.focus();
+  }
+});
+
+// ═══════════════════════════════════════════════════════
 // NOTIFICATIONS
 // ═══════════════════════════════════════════════════════
 let readNotifIds = new Set(JSON.parse(localStorage.getItem('marlo-read-notifs')||'[]'));
@@ -3232,6 +3394,8 @@ function calcPSCommission(){
 
 async function savePS(){
   const editId = document.getElementById('ps-edit-id').value;
+  const newStatut = document.getElementById('ps-statut').value;
+  const oldStatut = editId ? (PS_DB.find(x=>x.id===editId)?.statut||'') : '';
   const budget = parseFloat(document.getElementById('ps-budget').value)||0;
   const taux = parseFloat(document.getElementById('ps-taux').value)||0;
   const montantAchete = parseFloat(document.getElementById('ps-montant-achete').value)||0;
@@ -3252,7 +3416,7 @@ async function savePS(){
     frais_autres: parseFloat(document.getElementById('ps-frais-autres').value)||0,
     montant_achete: montantAchete,
     commission: commReelle,
-    statut: document.getElementById('ps-statut').value,
+    statut: newStatut,
     date_mission: document.getElementById('ps-date').value,
     date_livraison: document.getElementById('ps-date-livraison').value||null,
     notes: document.getElementById('ps-notes').value.trim(),
@@ -3273,7 +3437,70 @@ async function savePS(){
 
   closeModal('m-ps');
   renderPS();
-  toast(editId ? 'Mission mise à jour' : 'Mission créée'); updateNotifs();
+  toast(editId ? 'Mission mise à jour' : 'Mission créée');
+  updateNotifs();
+
+  // Si statut passe à "Achetée" pour la première fois → proposer ajout au stock
+  if(newStatut === 'Achetée' && oldStatut !== 'Achetée'){
+    setTimeout(()=>{ proposerStockDepuisPS(saved); }, 400);
+  }
+}
+
+function proposerStockDepuisPS(ps){
+  const titre = ps.titre || 'Mission PS';
+  if(!confirm(`Mission achetée 🛍️\n\n« ${titre} »\n\nVoulez-vous ajouter les articles achetés dans le stock maintenant ?`)) return;
+  ouvrirModalPSStock(ps);
+}
+
+function ouvrirModalPSStock(ps){
+  // Construire le modal dynamiquement dans le modal PS stock
+  const cl = CLIENTS.find(c=>c.id===ps.client_id);
+  const articles = (ps.articles_achetes||'').split('\n').filter(l=>l.trim()).slice(0,10);
+
+  // Pré-remplir le stock avec le premier article ou un article générique
+  // et proposer d'en créer autant que nécessaire
+  document.getElementById('m-article-title').textContent = `Ajouter au stock — PS : ${ps.titre||'Mission'}`;
+  document.getElementById('st-edit-id').value = '';
+  // Reset fields
+  ['st-nom','st-marque','st-ref','st-couleur','st-modele','st-serial',
+   'st-frais-transport','st-frais-auth','st-frais-restau','st-frais-autres','st-source-contact','st-accessoires'].forEach(id=>{
+    const el=document.getElementById(id); if(el) el.value='';
+  });
+  // Pré-remplir avec les infos de la mission
+  document.getElementById('st-pa').value = ps.montant_achete||'';
+  document.getElementById('st-pv-min').value = ps.budget||'';
+  document.getElementById('st-date-achat').value = ps.date_mission||new Date().toISOString().split('T')[0];
+  document.getElementById('st-notes').value = `Mission PS : ${ps.titre||'—'}${ps.ville?' — '+ps.ville:''}${ps.lieux?' ('+ps.lieux+')':''}${cl?' — Client : '+cl.prenom+' '+cl.nom:''}`;
+  const ss = document.getElementById('st-statut'); if(ss) ss.value = 'Réservé';
+  populateSelects();
+  const rc = document.getElementById('st-reserve-client');
+  if(rc && ps.client_id) rc.value = ps.client_id;
+
+  // Si des articles sont listés, pré-remplir le premier
+  if(articles.length > 0){
+    const first = articles[0];
+    document.getElementById('st-nom').value = first;
+    // Essayer d'extraire une marque connue
+    const marques = ['Hermès','Chanel','Louis Vuitton','Dior','Gucci','Prada','Bottega','Celine','Loewe','Valentino','Balenciaga','YSL','Fendi'];
+    const found = marques.find(m=>first.toLowerCase().includes(m.toLowerCase()));
+    if(found) document.getElementById('st-marque').value = found;
+  }
+
+  // Ajouter un message si plusieurs articles
+  if(articles.length > 1){
+    const existingNote = document.getElementById('st-notes').value;
+    document.getElementById('st-notes').value = existingNote + `\n\nArticles de la mission :\n${articles.join('\n')}`;
+  }
+
+  calcRevient();
+  nav('stock', document.querySelector('[data-sec="stock"]'));
+  setTimeout(()=>{
+    openModal('m-article');
+    // Afficher un hint si plusieurs articles
+    if(articles.length > 1){
+      toast(`💡 ${articles.length} articles dans la mission — créez-les un par un`);
+    }
+  }, 150);
 }
 
 function renderPS(){
@@ -3298,14 +3525,15 @@ function renderPS(){
   document.getElementById('ps-actives-list').innerHTML = activesList.length
     ? activesList.map(p=>{
         const cl = CLIENTS.find(c=>c.id===p.client_id);
-        return `<div onclick="editPS('${p.id}')" style="display:flex;align-items:flex-start;gap:10px;padding:10px 16px;border-bottom:.5px solid var(--border);cursor:pointer">
+        return `<div style="display:flex;align-items:flex-start;gap:10px;padding:10px 16px;border-bottom:.5px solid var(--border);cursor:pointer">
           <div style="width:8px;height:8px;border-radius:50%;background:var(--accent);flex-shrink:0;margin-top:4px"></div>
-          <div style="flex:1">
+          <div style="flex:1" onclick="editPS('${p.id}')">
             <div style="font-weight:500;font-size:13px">${p.titre||'Mission sans titre'}</div>
             <div style="font-size:11px;color:var(--ink-40);margin-top:2px">${cl?cl.prenom+' '+cl.nom:'—'} · ${p.ville||p.lieux||'—'}</div>
-            <div style="display:flex;gap:6px;margin-top:5px;flex-wrap:wrap">
+            <div style="display:flex;gap:6px;margin-top:5px;flex-wrap:wrap;align-items:center">
               <span class="badge ${PS_STATUTS_COLORS[p.statut]||'bw'}">${p.statut}</span>
               ${p.date_mission?`<span style="font-size:10px;color:var(--ink-40)">${fmtD(p.date_mission)}</span>`:''}
+              ${p.statut==='Achetée'?`<button onclick="event.stopPropagation();ouvrirModalPSStock(PS_DB.find(x=>x.id==='${p.id}'))" class="btn btn-g btn-sm" style="font-size:10px;padding:2px 8px">+ Stock</button>`:''}
             </div>
           </div>
           <div style="text-align:right;flex-shrink:0">
@@ -3432,6 +3660,9 @@ function toggleSrcResult(){
 
 async function saveSourcing(){
   const editId = document.getElementById('src-edit-id').value;
+  const newStatut = document.getElementById('src-statut').value;
+  const oldStatut = editId ? (SOURCING_DB.find(x=>x.id===editId)?.statut||'') : '';
+
   const obj = {
     user_id: USER.id,
     client_id: document.getElementById('src-client').value || null,
@@ -3446,7 +3677,7 @@ async function saveSourcing(){
     date_demande: document.getElementById('src-date').value,
     echeance: document.getElementById('src-echeance').value || null,
     urgence: document.getElementById('src-urgence').value,
-    statut: document.getElementById('src-statut').value,
+    statut: newStatut,
     sources: document.getElementById('src-sources').value.trim(),
     prix_trouve: parseFloat(document.getElementById('src-prix-trouve').value)||null,
     marge_src: parseFloat(document.getElementById('src-marge-src').value)||null,
@@ -3469,7 +3700,45 @@ async function saveSourcing(){
 
   closeModal('m-sourcing');
   renderSourcing();
+  updateNotifs();
   toast(editId ? 'Demande mise à jour' : 'Demande de sourcing créée');
+
+  // Si le statut passe à "Acheté" pour la première fois → proposer création dans le stock
+  if(newStatut === 'Acheté' && oldStatut !== 'Acheté'){
+    setTimeout(()=>{ proposerStockDepuisSourcing(saved); }, 400);
+  }
+}
+
+function proposerStockDepuisSourcing(src){
+  const nom = [src.marque, src.modele].filter(Boolean).join(' ');
+  if(!confirm(`Sourcing abouti 🎉\n\n${nom} a été acheté.\n\nVoulez-vous créer cet article dans le stock maintenant ?`)) return;
+  creerStockDepuisSourcing(src);
+}
+
+function creerStockDepuisSourcing(src){
+  // Pré-remplir le modal article avec les données du sourcing
+  document.getElementById('m-article-title').textContent = 'Ajouter au stock — depuis sourcing';
+  document.getElementById('st-edit-id').value = '';
+  document.getElementById('st-nom').value = src.modele || '';
+  document.getElementById('st-marque').value = src.marque || '';
+  document.getElementById('st-couleur').value = src.couleur || '';
+  document.getElementById('st-modele').value = src.modele || '';
+  document.getElementById('st-pa').value = src.prix_trouve || '';
+  document.getElementById('st-pv-min').value = src.budget || '';
+  document.getElementById('st-notes').value = `Issu d'un sourcing client${src.client_id ? ' — budget demandé '+fmt(src.budget) : ''}${src.lien?'\nSource : '+src.lien:''}`;
+  document.getElementById('st-date-achat').value = new Date().toISOString().split('T')[0];
+  document.getElementById('st-etat').value = src.etat_min || 'Très bon état';
+  const ss = document.getElementById('st-statut'); if(ss) ss.value = 'Réservé';
+  // Pré-sélectionner le client si réservé
+  const rc = document.getElementById('st-reserve-client');
+  if(rc && src.client_id) { populateSelects(); rc.value = src.client_id; }
+  else populateSelects();
+  ['st-ref','st-serial','st-frais-transport','st-frais-auth','st-frais-restau','st-frais-autres','st-source-contact','st-accessoires'].forEach(id=>{
+    const el=document.getElementById(id); if(el) el.value='';
+  });
+  calcRevient();
+  nav('stock', document.querySelector('[data-sec="stock"]'));
+  setTimeout(()=>openModal('m-article'), 150);
 }
 
 function renderSourcing(){
@@ -3504,8 +3773,8 @@ function renderSourcing(){
         ${items.length ? items.map(s=>{
           const cl=CLIENTS.find(c=>c.id===s.client_id);
           const overdue = s.echeance && new Date(s.echeance)<new Date() && !['Acheté','Annulé'].includes(s.statut);
-          return `<div onclick="editSourcing('${s.id}')" style="background:var(--surface);border-radius:8px;padding:10px 12px;cursor:pointer;border:.5px solid var(--border);${overdue?'border-color:var(--red)':''}">
-            <div style="font-weight:500;font-size:13px;margin-bottom:3px">${s.marque} ${s.modele}</div>
+          return `<div style="background:var(--surface);border-radius:8px;padding:10px 12px;cursor:pointer;border:.5px solid var(--border);${overdue?'border-color:var(--red)':''}">
+            <div onclick="editSourcing('${s.id}')" style="font-weight:500;font-size:13px;margin-bottom:3px">${s.marque} ${s.modele}</div>
             <div style="font-size:11px;color:var(--ink-40);margin-bottom:6px">${s.couleur||''} ${s.taille?'· '+s.taille:''}</div>
             <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:4px">
               ${cl?`<span style="font-size:11px;color:var(--ink-40)">${cl.prenom} ${cl.nom}</span>`:'<span></span>'}
@@ -3515,6 +3784,7 @@ function renderSourcing(){
               </div>
             </div>
             ${overdue?`<div style="font-size:9px;color:var(--red);margin-top:4px">⚠ Échéance dépassée</div>`:''}
+            ${s.statut==='Acheté'?`<button onclick="event.stopPropagation();creerStockDepuisSourcing(SOURCING_DB.find(x=>x.id==='${s.id}'))" class="btn btn-g btn-sm" style="width:100%;margin-top:8px;justify-content:center;font-size:11px">+ Ajouter au stock</button>`:''}
           </div>`;
         }).join('') : `<div style="font-size:12px;color:var(--ink-40);text-align:center;padding:8px">Aucune</div>`}
       </div>
