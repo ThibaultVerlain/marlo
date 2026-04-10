@@ -822,7 +822,10 @@ tfoot tr td{padding:8px 10px;font-size:12px;font-weight:500;border-top:.5px soli
           <button class="btn btn-gh btn-sm" onclick="exportStockCSV()">Export CSV</button>
           <button class="btn btn-g btn-sm" onclick="openArticleModal()">+ Ajouter</button>
         </div>
-      </div><th>Marque</th><th>Catégorie</th><th>Source / Auth.</th><th class="tnum">Coût rev.</th><th class="tnum">Prix vente</th><th class="tnum">Marge</th><th>Statut</th><th>État</th><th></th></tr></thead><tbody id="stock-tbody"></tbody><tfoot id="stock-tfoot"></tfoot></table></div>
+      </div>
+      <div class="panel" style="margin:0"><table><thead><tr>
+        <th style="width:22%">Article</th><th>Marque</th><th>Catégorie</th><th>Source / Auth.</th><th class="tnum">Coût rev.</th><th class="tnum">Prix vente</th><th class="tnum">Marge</th><th>Statut</th><th>État</th><th></th>
+      </tr></thead><tbody id="stock-tbody"></tbody><tfoot id="stock-tfoot"></tfoot></table></div>
     </div>
 
     <!-- VENTES -->
@@ -4039,7 +4042,7 @@ function printInvoice(){
     <div class="bill-to">
       <div class="bill-label">Facturer à</div>
       <div class="bill-name">${client.prenom||''} ${client.nom||''}</div>
-      ${client.email?`<div style="color:#666;font-size:11px">${client.email}</div>`:''}
+      ${client.email?`<div style="color:#888;font-size:11px">${client.email}</div>`:''}
     </div>
 
     <table>
