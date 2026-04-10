@@ -8,103 +8,153 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-/* ══════════════════════════════════════
-   THÈME 1 (défaut) — Lin blanc & Bordeaux #9B1B2E
-   ══════════════════════════════════════ */
+
+/* ══════════════════════════════════════════════════════════
+   VARIABLES SÉMANTIQUES FIXES (indépendantes du thème)
+   ══════════════════════════════════════════════════════════ */
 :root{
+  --sb:200px;--r:10px;
+  --red:#8B1A1A;--red-bg:#F8EDED;
+  --green:#1E6630;--green-bg:#E4F2E8;
+  --blue:#1A4A8A;--blue-bg:#E0EAF5;
+  --amber:#7A4400;--amber-bg:#FDF0DC;
+  --vint-bg:#E0F0E4;--vint-txt:#135020;
+}
+
+/* ══ T1 — Ivoire & Bordeaux (défaut clair) ══ */
+:root,html[data-theme="t1"]{
   --accent:#9B1B2E;--accent-l:#B82236;--accent-xl:#D43A50;--accent-d:#72121F;
-  --accent-bg:rgba(155,27,46,0.08);--accent-border:rgba(155,27,46,0.2);
+  --accent-bg:rgba(155,27,46,.08);--accent-border:rgba(155,27,46,.20);
   --bg:#F7F3EC;--bg2:#EDE7DA;--surface:#FFFFFF;--surface2:#FAF8F3;
-  --ink:#1A080C;--ink-70:rgba(26,8,12,.70);--ink-40:rgba(26,8,12,.52);--ink-12:rgba(26,8,12,.10);
-  --border:rgba(155,27,46,0.14);--border-s:rgba(155,27,46,0.26);
-  --sb-bg:#9B1B2E;
-  --sb-txt:rgba(247,243,236,.60);   /* sidebar texte normal — ratio ~3.2 */
-  --sb-txt-h:rgba(247,243,236,.92); /* sidebar hover — ratio ~5.8 */
-  --sb-active:rgba(247,243,236,.96);/* texte nav actif — blanc cassé */
-  --sb-active-bg:rgba(255,255,255,.14);
-  --red:#8B1A1A;--red-bg:#F8EDED;--green:#1E6630;--green-bg:#E4F2E8;
-  --blue:#1A4A8A;--blue-bg:#E0EAF5;--amber:#7A4400;--amber-bg:#FDF0DC;
+  --ink:#1A080C;--ink-70:rgba(26,8,12,.70);--ink-40:rgba(26,8,12,.50);--ink-12:rgba(26,8,12,.09);
+  --border:rgba(155,27,46,.13);--border-s:rgba(155,27,46,.24);
+  --sb-bg:#9B1B2E;--sb-txt:rgba(247,243,236,.58);--sb-txt-h:rgba(247,243,236,.92);
+  --sb-active:rgba(247,243,236,.96);--sb-active-bg:rgba(255,255,255,.14);
   --priv-bg:rgba(155,27,46,.1);--priv-txt:#5A0A18;
-  --vint-bg:#E0F0E4;--vint-txt:#135020;
   --vest-bg:rgba(155,27,46,.1);--vest-txt:#5A0A18;
-  --btn-fg:#FFFFFF;--sb:200px;--r:10px;
-  --chart-bar:#9B1B2E;--chart-bar-bg:rgba(155,27,46,.18);--chart-grid:rgba(155,27,46,.09);--chart-tick:#8A7070;--chart-bg:#FFFFFF;--chart-hover:#B82236;
+  --btn-fg:#FFFFFF;
+  --chart-bar:#9B1B2E;--chart-bar-bg:rgba(155,27,46,.15);--chart-grid:rgba(155,27,46,.08);--chart-tick:#A08080;--chart-bg:#FFFFFF;--chart-hover:#B82236;
 }
 
-/* ══ THÈME 2 — Blanc bleuté & Marine #003580 ══ */
+/* ══ T2 — Craie & Ardoise (clair neutre) ══ */
 html[data-theme="t2"]{
-  --accent:#003580;--accent-l:#0044A8;--accent-xl:#1A5AC8;--accent-d:#001E50;
-  --accent-bg:rgba(0,53,128,0.08);--accent-border:rgba(0,53,128,0.2);
-  --bg:#EEF3F8;--bg2:#E0E8F0;--surface:#FFFFFF;--surface2:#F4F7FB;
-  --ink:#060E1A;--ink-70:rgba(6,14,26,.70);--ink-40:rgba(6,14,26,.52);--ink-12:rgba(6,14,26,.10);
-  --border:rgba(0,53,128,0.13);--border-s:rgba(0,53,128,0.25);
-  --sb-bg:#003580;
-  --sb-txt:rgba(238,243,248,.60);
-  --sb-txt-h:rgba(238,243,248,.92);
-  --sb-active:rgba(238,243,248,.96);
-  --sb-active-bg:rgba(255,255,255,.14);
-  --red:#8B1A1A;--red-bg:#F8EDED;--green:#1E6630;--green-bg:#E4F2E8;
-  --blue:#003580;--blue-bg:#E0EAF5;--amber:#7A4400;--amber-bg:#FDF0DC;
-  --priv-bg:rgba(0,53,128,.1);--priv-txt:#001E50;
-  --vint-bg:#E0F0E4;--vint-txt:#135020;
-  --vest-bg:rgba(0,53,128,.1);--vest-txt:#001E50;
-  --btn-fg:#FFFFFF;--chart-bar:#003580;--chart-bar-bg:rgba(0,53,128,.18);--chart-grid:rgba(0,53,128,.08);--chart-tick:#7080A0;--chart-bg:#FFFFFF;--chart-hover:#0044A8;
+  --accent:#2C2E3A;--accent-l:#3E4156;--accent-xl:#555872;--accent-d:#1A1C26;
+  --accent-bg:rgba(44,46,58,.07);--accent-border:rgba(44,46,58,.18);
+  --bg:#F5F5F0;--bg2:#EAEAE3;--surface:#FFFFFF;--surface2:#F9F9F7;
+  --ink:#1A1A22;--ink-70:rgba(26,26,34,.70);--ink-40:rgba(26,26,34,.50);--ink-12:rgba(26,26,34,.09);
+  --border:rgba(44,46,58,.12);--border-s:rgba(44,46,58,.22);
+  --sb-bg:#2C2E3A;--sb-txt:rgba(240,240,245,.55);--sb-txt-h:rgba(240,240,245,.92);
+  --sb-active:rgba(240,240,245,.96);--sb-active-bg:rgba(255,255,255,.12);
+  --priv-bg:rgba(44,46,58,.09);--priv-txt:#1A1C26;
+  --vest-bg:rgba(44,46,58,.09);--vest-txt:#1A1C26;
+  --btn-fg:#FFFFFF;
+  --chart-bar:#2C2E3A;--chart-bar-bg:rgba(44,46,58,.14);--chart-grid:rgba(44,46,58,.07);--chart-tick:#909098;--chart-bg:#FFFFFF;--chart-hover:#3E4156;
 }
 
-/* ══ THÈME 3 — Nuit & Marine électrique ══ */
+/* ══ T3 — Sable & Cognac (clair chaud) ══ */
 html[data-theme="t3"]{
-  --accent:#4A90F0;          /* accent affiché = blue clair lisible sur fond sombre */
-  --accent-l:#6AAAF5;
-  --accent-xl:#8DC4FF;
-  --accent-d:#0055C8;        /* version foncée pour éléments sur fond clair */
-  --accent-bg:rgba(74,144,240,0.13);--accent-border:rgba(74,144,240,0.26);
-  --bg:#080E18;--bg2:#0E1828;--surface:#0E1828;--surface2:#141E30;
-  --ink:#D8E8F8;              /* blanc bleuté — ratio 12.4 sur #080E18 */
-  --ink-70:rgba(216,232,248,.72);
-  --ink-40:rgba(216,232,248,.55); /* ratio ~5.2 sur surface */
-  --ink-12:rgba(216,232,248,.09);
-  --border:rgba(74,144,240,0.20);--border-s:rgba(74,144,240,0.32);
-  --sb-bg:#040810;
-  --sb-txt:rgba(216,232,248,.55);
-  --sb-txt-h:rgba(216,232,248,.88);
-  --sb-active:rgba(216,232,248,.96);
-  --sb-active-bg:rgba(74,144,240,.18);
-  --red:#FF6B76;--red-bg:rgba(255,107,118,.13);
-  --green:#4DE878;--green-bg:rgba(77,232,120,.13);
-  --blue:#4A90F0;--blue-bg:rgba(74,144,240,.15);
-  --amber:#FFB830;--amber-bg:rgba(255,184,48,.13);
-  --priv-bg:rgba(74,144,240,.15);--priv-txt:#8DC4FF;
-  --vint-bg:rgba(77,232,120,.13);--vint-txt:#4DE878;
-  --vest-bg:rgba(74,144,240,.13);--vest-txt:#8DC4FF;
-  --btn-fg:#060E18;--chart-bar:#4A90F0;--chart-bar-bg:rgba(74,144,240,.25);--chart-grid:rgba(74,144,240,.12);--chart-tick:#4A6080;--chart-bg:#0E1828;--chart-hover:#6AAAF5;
+  --accent:#C26820;--accent-l:#D97A2A;--accent-xl:#E8903C;--accent-d:#8A4A12;
+  --accent-bg:rgba(194,104,32,.09);--accent-border:rgba(194,104,32,.22);
+  --bg:#FAF5EC;--bg2:#F0E8D6;--surface:#FFFFFF;--surface2:#FBF8F2;
+  --ink:#1E0E00;--ink-70:rgba(30,14,0,.70);--ink-40:rgba(30,14,0,.50);--ink-12:rgba(30,14,0,.09);
+  --border:rgba(194,104,32,.13);--border-s:rgba(194,104,32,.26);
+  --sb-bg:#7A4A1E;--sb-txt:rgba(255,245,230,.55);--sb-txt-h:rgba(255,245,230,.92);
+  --sb-active:rgba(255,245,230,.96);--sb-active-bg:rgba(255,255,255,.14);
+  --priv-bg:rgba(194,104,32,.1);--priv-txt:#6A3010;
+  --vest-bg:rgba(194,104,32,.1);--vest-txt:#6A3010;
+  --btn-fg:#FFFFFF;
+  --chart-bar:#C26820;--chart-bar-bg:rgba(194,104,32,.15);--chart-grid:rgba(194,104,32,.08);--chart-tick:#B09070;--chart-bg:#FFFFFF;--chart-hover:#D97A2A;
 }
 
-/* ══ THÈME 4 — Noir charbon & Bordeaux vif ══ */
+/* ══ T4 — Blanc & Vert Sauge (clair frais) ══ */
 html[data-theme="t4"]{
-  --accent:#F04060;          /* bordeaux vif lisible sur fond sombre */
-  --accent-l:#FF5572;
-  --accent-xl:#FF8095;
-  --accent-d:#C81E37;        /* version foncée */
-  --accent-bg:rgba(240,64,96,0.13);--accent-border:rgba(240,64,96,0.26);
-  --bg:#110A0B;--bg2:#1C1012;--surface:#1C1012;--surface2:#221518;
-  --ink:#F5E0E2;              /* blanc rosé — ratio 13.2 sur #110A0B */
-  --ink-70:rgba(245,224,226,.72);
-  --ink-40:rgba(245,224,226,.55); /* ratio ~5.4 sur surface */
-  --ink-12:rgba(245,224,226,.09);
-  --border:rgba(240,64,96,0.18);--border-s:rgba(240,64,96,0.30);
-  --sb-bg:#080406;
-  --sb-txt:rgba(245,224,226,.55);
-  --sb-txt-h:rgba(245,224,226,.88);
-  --sb-active:rgba(245,224,226,.96);
-  --sb-active-bg:rgba(240,64,96,.18);
+  --accent:#2D6A4A;--accent-l:#3A8A60;--accent-xl:#4AA875;--accent-d:#1A4A32;
+  --accent-bg:rgba(45,106,74,.08);--accent-border:rgba(45,106,74,.20);
+  --bg:#F3F8F4;--bg2:#E4EFE6;--surface:#FFFFFF;--surface2:#F7FAF7;
+  --ink:#0E1E14;--ink-70:rgba(14,30,20,.70);--ink-40:rgba(14,30,20,.50);--ink-12:rgba(14,30,20,.09);
+  --border:rgba(45,106,74,.13);--border-s:rgba(45,106,74,.25);
+  --sb-bg:#2D4A3A;--sb-txt:rgba(230,245,235,.55);--sb-txt-h:rgba(230,245,235,.92);
+  --sb-active:rgba(230,245,235,.96);--sb-active-bg:rgba(255,255,255,.13);
+  --priv-bg:rgba(45,106,74,.1);--priv-txt:#1A4A32;
+  --vest-bg:rgba(45,106,74,.1);--vest-txt:#1A4A32;
+  --btn-fg:#FFFFFF;
+  --chart-bar:#2D6A4A;--chart-bar-bg:rgba(45,106,74,.15);--chart-grid:rgba(45,106,74,.08);--chart-tick:#80A890;--chart-bg:#FFFFFF;--chart-hover:#3A8A60;
+}
+
+/* ══ T5 — Obsidienne & Or (sombre opulent) ══ */
+html[data-theme="t5"]{
+  --accent:#C8A84A;--accent-l:#D8BC60;--accent-xl:#E8CF7A;--accent-d:#A08030;
+  --accent-bg:rgba(200,168,74,.12);--accent-border:rgba(200,168,74,.28);
+  --bg:#141210;--bg2:#1C1916;--surface:#1E1B18;--surface2:#221F1B;
+  --ink:#E8DFC8;--ink-70:rgba(232,223,200,.72);--ink-40:rgba(232,223,200,.50);--ink-12:rgba(232,223,200,.09);
+  --border:rgba(200,168,74,.16);--border-s:rgba(200,168,74,.28);
+  --sb-bg:#0C0A08;--sb-txt:rgba(220,195,130,.50);--sb-txt-h:rgba(220,195,130,.90);
+  --sb-active:rgba(220,195,130,.96);--sb-active-bg:rgba(200,168,74,.14);
+  --red:#FF7070;--red-bg:rgba(255,112,112,.13);
+  --green:#50E890;--green-bg:rgba(80,232,144,.13);
+  --blue:#70B0F0;--blue-bg:rgba(112,176,240,.13);
+  --amber:#FFB830;--amber-bg:rgba(255,184,48,.13);
+  --priv-bg:rgba(200,168,74,.15);--priv-txt:#D8BC60;
+  --vest-bg:rgba(200,168,74,.12);--vest-txt:#C8A84A;
+  --btn-fg:#0C0A08;
+  --chart-bar:#C8A84A;--chart-bar-bg:rgba(200,168,74,.22);--chart-grid:rgba(200,168,74,.10);--chart-tick:#706040;--chart-bg:#1E1B18;--chart-hover:#D8BC60;
+}
+
+/* ══ T6 — Nuit & Bordeaux (sombre intense) ══ */
+html[data-theme="t6"]{
+  --accent:#D43060;--accent-l:#E84878;--accent-xl:#F06898;--accent-d:#A01848;
+  --accent-bg:rgba(212,48,96,.13);--accent-border:rgba(212,48,96,.28);
+  --bg:#110810;--bg2:#1A0E18;--surface:#1E1020;--surface2:#231523;
+  --ink:#F0D8E4;--ink-70:rgba(240,216,228,.72);--ink-40:rgba(240,216,228,.50);--ink-12:rgba(240,216,228,.09);
+  --border:rgba(212,48,96,.16);--border-s:rgba(212,48,96,.28);
+  --sb-bg:#08040A;--sb-txt:rgba(240,200,215,.50);--sb-txt-h:rgba(240,200,215,.90);
+  --sb-active:rgba(240,200,215,.96);--sb-active-bg:rgba(180,40,70,.18);
   --red:#FF6B76;--red-bg:rgba(255,107,118,.13);
   --green:#4DE878;--green-bg:rgba(77,232,120,.13);
-  --blue:#70A0F0;--blue-bg:rgba(112,160,240,.13);
+  --blue:#80B8F8;--blue-bg:rgba(128,184,248,.13);
   --amber:#FFB830;--amber-bg:rgba(255,184,48,.13);
-  --priv-bg:rgba(240,64,96,.15);--priv-txt:#FF8095;
-  --vint-bg:rgba(77,232,120,.13);--vint-txt:#4DE878;
-  --vest-bg:rgba(240,64,96,.13);--vest-txt:#FF8095;
-  --btn-fg:#1A080C;--chart-bar:#F04060;--chart-bar-bg:rgba(240,64,96,.25);--chart-grid:rgba(240,64,96,.12);--chart-tick:#6A3840;--chart-bg:#1C1012;--chart-hover:#FF5572;
+  --priv-bg:rgba(212,48,96,.15);--priv-txt:#E84878;
+  --vest-bg:rgba(212,48,96,.12);--vest-txt:#D43060;
+  --btn-fg:#08040A;
+  --chart-bar:#D43060;--chart-bar-bg:rgba(212,48,96,.22);--chart-grid:rgba(212,48,96,.10);--chart-tick:#704050;--chart-bg:#1E1020;--chart-hover:#E84878;
+}
+
+/* ══ T7 — Carbone & Cyan (sombre tech) ══ */
+html[data-theme="t7"]{
+  --accent:#1EA0DC;--accent-l:#30B8F4;--accent-xl:#50CCFF;--accent-d:#0878AC;
+  --accent-bg:rgba(30,160,220,.12);--accent-border:rgba(30,160,220,.28);
+  --bg:#0C1018;--bg2:#121820;--surface:#141C26;--surface2:#192030;
+  --ink:#C8DCF0;--ink-70:rgba(200,220,240,.72);--ink-40:rgba(200,220,240,.50);--ink-12:rgba(200,220,240,.09);
+  --border:rgba(30,160,220,.16);--border-s:rgba(30,160,220,.28);
+  --sb-bg:#080C10;--sb-txt:rgba(180,220,255,.50);--sb-txt-h:rgba(180,220,255,.90);
+  --sb-active:rgba(180,220,255,.96);--sb-active-bg:rgba(30,160,220,.16);
+  --red:#FF6878;--red-bg:rgba(255,104,120,.13);
+  --green:#40E890;--green-bg:rgba(64,232,144,.13);
+  --blue:#1EA0DC;--blue-bg:rgba(30,160,220,.15);
+  --amber:#FFC040;--amber-bg:rgba(255,192,64,.13);
+  --priv-bg:rgba(30,160,220,.15);--priv-txt:#50CCFF;
+  --vest-bg:rgba(30,160,220,.12);--vest-txt:#1EA0DC;
+  --btn-fg:#080C10;
+  --chart-bar:#1EA0DC;--chart-bar-bg:rgba(30,160,220,.22);--chart-grid:rgba(30,160,220,.10);--chart-tick:#3A6080;--chart-bg:#141C26;--chart-hover:#30B8F4;
+}
+
+/* ══ T8 — Minuit & Émeraude (sombre nature) ══ */
+html[data-theme="t8"]{
+  --accent:#1EB880;--accent-l:#28D094;--accent-xl:#40E8A8;--accent-d:#0A9060;
+  --accent-bg:rgba(30,184,128,.12);--accent-border:rgba(30,184,128,.28);
+  --bg:#080F0C;--bg2:#0E1A14;--surface:#101E18;--surface2:#14221C;
+  --ink:#C0E4D0;--ink-70:rgba(192,228,208,.72);--ink-40:rgba(192,228,208,.50);--ink-12:rgba(192,228,208,.09);
+  --border:rgba(30,184,128,.16);--border-s:rgba(30,184,128,.28);
+  --sb-bg:#050C0A;--sb-txt:rgba(170,230,200,.50);--sb-txt-h:rgba(170,230,200,.90);
+  --sb-active:rgba(170,230,200,.96);--sb-active-bg:rgba(30,180,120,.16);
+  --red:#FF7080;--red-bg:rgba(255,112,128,.13);
+  --green:#1EB880;--green-bg:rgba(30,184,128,.15);
+  --blue:#60B8E8;--blue-bg:rgba(96,184,232,.13);
+  --amber:#FFB840;--amber-bg:rgba(255,184,64,.13);
+  --priv-bg:rgba(30,184,128,.15);--priv-txt:#40E8A8;
+  --vest-bg:rgba(30,184,128,.12);--vest-txt:#1EB880;
+  --btn-fg:#050C0A;
+  --chart-bar:#1EB880;--chart-bar-bg:rgba(30,184,128,.22);--chart-grid:rgba(30,184,128,.10);--chart-tick:#306050;--chart-bg:#101E18;--chart-hover:#28D094;
 }
 body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--ink);font-size:14px;line-height:1.5;transition:background .3s,color .3s}
 input,select,textarea,button{font-family:'DM Sans',sans-serif;font-size:13px}
@@ -160,6 +210,10 @@ nav{flex:1;overflow-y:auto;padding-bottom:6px}
 html[data-theme="t2"] .i-wine{display:none}html[data-theme="t2"] .i-blue{display:block}
 html[data-theme="t3"] .i-wine{display:none}html[data-theme="t3"] .i-blue{display:block}
 html[data-theme="t4"] .i-wine{display:none}html[data-theme="t4"] .i-blue{display:block}
+html[data-theme="t5"] .i-wine{display:none}html[data-theme="t5"] .i-blue{display:block}
+html[data-theme="t6"] .i-wine{display:none}html[data-theme="t6"] .i-blue{display:block}
+html[data-theme="t7"] .i-wine{display:none}html[data-theme="t7"] .i-blue{display:block}
+html[data-theme="t8"] .i-wine{display:none}html[data-theme="t8"] .i-blue{display:block}
 
 /* Theme switcher popup */
 .theme-switcher{position:absolute;bottom:48px;right:10px;background:var(--surface);border:.5px solid var(--border-s);border-radius:10px;padding:10px;display:none;flex-direction:column;gap:6px;min-width:180px;z-index:999;box-shadow:0 8px 24px rgba(0,0,0,.18)}
@@ -629,17 +683,29 @@ tfoot tr td{padding:8px 10px;font-size:12px;font-weight:500;border-top:.5px soli
     <div class="theme-switcher" id="theme-switcher">
       <div class="tsep">Mode clair</div>
       <button class="topt on" id="topt-t1" onclick="setTheme('t1')">
-        <div class="topt-swatch" style="background:#9B1B2E"></div>Lin blanc & Bordeaux
+        <div class="topt-swatch" style="background:#9B1B2E"></div>Ivoire & Bordeaux
       </button>
       <button class="topt" id="topt-t2" onclick="setTheme('t2')">
-        <div class="topt-swatch" style="background:#003580"></div>Blanc bleuté & Marine
+        <div class="topt-swatch" style="background:#2C2E3A"></div>Craie & Ardoise
       </button>
-      <div class="tsep">Mode sombre</div>
       <button class="topt" id="topt-t3" onclick="setTheme('t3')">
-        <div class="topt-swatch" style="background:#0055C8"></div>Nuit & Marine électrique
+        <div class="topt-swatch" style="background:#C26820"></div>Sable & Cognac
       </button>
       <button class="topt" id="topt-t4" onclick="setTheme('t4')">
-        <div class="topt-swatch" style="background:#C81E37"></div>Noir & Bordeaux vif
+        <div class="topt-swatch" style="background:#2D6A4A"></div>Blanc & Vert Sauge
+      </button>
+      <div class="tsep">Mode sombre</div>
+      <button class="topt" id="topt-t5" onclick="setTheme('t5')">
+        <div class="topt-swatch" style="background:#C8A84A"></div>Obsidienne & Or
+      </button>
+      <button class="topt" id="topt-t6" onclick="setTheme('t6')">
+        <div class="topt-swatch" style="background:#D43060"></div>Nuit & Bordeaux
+      </button>
+      <button class="topt" id="topt-t7" onclick="setTheme('t7')">
+        <div class="topt-swatch" style="background:#1EA0DC"></div>Carbone & Cyan
+      </button>
+      <button class="topt" id="topt-t8" onclick="setTheme('t8')">
+        <div class="topt-swatch" style="background:#1EB880"></div>Minuit & Émeraude
       </button>
     </div>
     <div class="sb-user" id="sb-user-email"></div>
@@ -750,6 +816,7 @@ tfoot tr td{padding:8px 10px;font-size:12px;font-weight:500;border-top:.5px soli
             <option value="90">+90 jours</option>
           </select>
           <span id="stock-count" style="font-size:11px;color:var(--ink-40);white-space:nowrap"></span>
+          <button class="btn btn-gh btn-sm" id="stock-reset-btn" onclick="resetStockFilters()" style="display:none;font-size:11px">✕ Filtres</button>
         </div>
         <div style="display:flex;gap:7px">
           <button class="btn btn-gh btn-sm" onclick="exportStockCSV()">Export CSV</button>
@@ -773,6 +840,7 @@ tfoot tr td{padding:8px 10px;font-size:12px;font-weight:500;border-top:.5px soli
           <select class="ii" id="v-filter-canal" onchange="renderVentes()"><option value="">Tous canaux</option><option>Privé</option><option>Vinted</option><option>Vestiaire</option></select>
           <select class="ii" id="v-filter-statut" onchange="renderVentes()"><option value="">Tous statuts</option><option>Payé</option><option>En attente</option><option>Expédié</option><option>Retour</option></select>
           <span id="ventes-count" style="font-size:11px;color:var(--ink-40);white-space:nowrap"></span>
+          <button class="btn btn-gh btn-sm" id="ventes-reset-btn" onclick="resetVentesFilters()" style="display:none;font-size:11px">✕ Filtres</button>
         </div>
         <button class="btn btn-gh btn-sm" onclick="exportVentesCSV()">Export CSV</button>
         <button class="btn btn-g btn-sm" onclick="openVenteModal()">+ Nouvelle vente</button>
@@ -1658,19 +1726,23 @@ let mainChart = null;
 // THEME
 // ═══════════════════════════════════════════════════════
 const THEMES = {
-  t1:{bar:'#9B1B2E',barBg:'rgba(155,27,46,.15)',grid:'rgba(155,27,46,.08)',tick:'#B09090',bg:'#FFFFFF',hover:'#B82236'},
-  t2:{bar:'#003580',barBg:'rgba(0,53,128,.15)',grid:'rgba(0,53,128,.07)',tick:'#8899B0',bg:'#FFFFFF',hover:'#0044A8'},
-  t3:{bar:'#0055C8',barBg:'rgba(0,85,200,.22)',grid:'rgba(0,85,200,.1)',tick:'#3A5070',bg:'#0E1828',hover:'#1A6AE0'},
-  t4:{bar:'#C81E37',barBg:'rgba(200,30,55,.22)',grid:'rgba(200,30,55,.1)',tick:'#6A3038',bg:'#1C1012',hover:'#E02040'},
+  t1:{bar:'#9B1B2E',barBg:'rgba(155,27,46,.15)',grid:'rgba(155,27,46,.08)',tick:'#A08080',bg:'#FFFFFF',hover:'#B82236'},
+  t2:{bar:'#2C2E3A',barBg:'rgba(44,46,58,.14)',grid:'rgba(44,46,58,.07)',tick:'#909098',bg:'#FFFFFF',hover:'#3E4156'},
+  t3:{bar:'#C26820',barBg:'rgba(194,104,32,.15)',grid:'rgba(194,104,32,.08)',tick:'#B09070',bg:'#FFFFFF',hover:'#D97A2A'},
+  t4:{bar:'#2D6A4A',barBg:'rgba(45,106,74,.15)',grid:'rgba(45,106,74,.08)',tick:'#80A890',bg:'#FFFFFF',hover:'#3A8A60'},
+  t5:{bar:'#C8A84A',barBg:'rgba(200,168,74,.22)',grid:'rgba(200,168,74,.10)',tick:'#706040',bg:'#1E1B18',hover:'#D8BC60'},
+  t6:{bar:'#D43060',barBg:'rgba(212,48,96,.22)',grid:'rgba(212,48,96,.10)',tick:'#704050',bg:'#1E1020',hover:'#E84878'},
+  t7:{bar:'#1EA0DC',barBg:'rgba(30,160,220,.22)',grid:'rgba(30,160,220,.10)',tick:'#3A6080',bg:'#141C26',hover:'#30B8F4'},
+  t8:{bar:'#1EB880',barBg:'rgba(30,184,128,.22)',grid:'rgba(30,184,128,.10)',tick:'#306050',bg:'#101E18',hover:'#28D094'},
 };
+const ALL_THEMES = ['t1','t2','t3','t4','t5','t6','t7','t8'];
 let currentTheme = 't1';
 
 function setTheme(t){
   currentTheme = t;
   document.documentElement.setAttribute('data-theme', t);
   localStorage.setItem('marlo-theme', t);
-  // Update active state in picker
-  ['t1','t2','t3','t4'].forEach(id=>{
+  ALL_THEMES.forEach(id=>{
     const el = document.getElementById('topt-'+id);
     if(el) el.classList.toggle('on', id===t);
   });
@@ -1695,8 +1767,7 @@ document.addEventListener('click', e=>{
   const s = localStorage.getItem('marlo-theme')||'t1';
   currentTheme = s;
   document.documentElement.setAttribute('data-theme', s);
-  const el = document.getElementById('topt-'+s);
-  if(el){ ['t1','t2','t3','t4'].forEach(id=>{ const x=document.getElementById('topt-'+id); if(x) x.classList.toggle('on',id===s); }); }
+  ALL_THEMES.forEach(id=>{ const x=document.getElementById('topt-'+id); if(x) x.classList.toggle('on',id===s); });
 })();
 
 function cc(){
@@ -1843,7 +1914,7 @@ async function loadAllData(){
 
   const [s,st,v,c,f,se,ac,cm,src,ps,rz] = await Promise.allSettled([
     q('shops',     {order:'sort_order', asc:true}),
-    q('stock',     {order:'created_at'}),
+    q('stock',     {order:'date_achat'}),
     q('ventes',    {order:'date', asc:false}),
     q('clients',   {order:'created_at'}),
     q('factures',  {order:'created_at'}),
@@ -2376,13 +2447,13 @@ function renderCommandes(){
   document.getElementById('cmd-tbody').innerHTML=list.length
     ?list.map(c=>{
       const cl=CLIENTS.find(x=>x.id===c.client_id);
-      const cname=cl?`${cl.prenom} ${cl.nom}`:c.pseudo||'—';
+      const cname=cl?escHtml(`${cl.prenom} ${cl.nom}`):escHtml(c.pseudo||'—');
       const isLitige=c.statut==='Litige ouvert';
       const linkedVente=VENTES.find(v=>v.commande_id===c.id);
       return `<tr onclick="editCommande('${c.id}')" style="${isLitige?'background:var(--red-bg)':''}">
         <td>
-          <div style="font-weight:500">${c.article}</div>
-          ${isLitige?`<div style="font-size:10px;color:var(--red);margin-top:2px">⚠ ${c.litige_motif||'Litige'}</div>`:''}
+          <div style="font-weight:500">${escHtml(c.article)}</div>
+          ${isLitige?`<div style="font-size:10px;color:var(--red);margin-top:2px">⚠ ${escHtml(c.litige_motif||'Litige')}</div>`:''}
           ${linkedVente?`<div style="font-size:10px;color:var(--green);margin-top:2px;cursor:pointer" onclick="event.stopPropagation();nav('ventes',document.querySelector('[data-sec=ventes]'))">↗ Vente créée</div>`:''}
         </td>
         <td style="font-size:12px;color:var(--ink-40)">${cname}</td>
@@ -2518,8 +2589,9 @@ function doSearch(q){
   const stock = STOCK.filter(a=>`${a.nom} ${a.marque} ${a.ref||''} ${a.couleur||''}`.toLowerCase().includes(ql)).slice(0,4);
   if(stock.length) sections.push({
     label:'Stock', items: stock.map(a=>({
-      title:`${a.marque} ${a.nom}`, sub:`${a.categorie||'—'} · ${a.cout_revient?fmt(a.cout_revient):'—'}`,
-      badge:a.statut||'Disponible', badgeCls:'bp',
+      title:`${a.marque} ${a.nom}`,
+      sub:`${a.statut||'Disponible'} · ${a.prix_vente?'PV '+fmt(a.prix_vente):'coût '+fmt(a.cout_revient||a.prix_achat||0)}`,
+      badge:a.statut||'Disponible', badgeCls:a.statut==='Vendu'?'br':a.statut==='Réservé'?'bw':'bp',
       action:()=>{ nav('stock',document.querySelector('[data-sec="stock"]')); setTimeout(()=>editArticle(a.id),100); }
     }))
   });
@@ -2828,14 +2900,24 @@ function renderDash(){
   const ca = filtered.reduce((s,v)=>s+(v.montant||0),0);
   const net = filtered.reduce((s,v)=>s+(v.net||v.montant||0),0);
   const avail = filterByShop(STOCK).filter(a=>a.statut!=='Vendu').length;
-  const srcActives = SOURCING_DB.filter(s=>!['Acheté','Annulé'].includes(s.statut)).length;
   const pL = {today:'7 derniers jours',month:'Ce mois',year:'Cette année'}[period];
 
+  // Marge = net - achats sur la même période
+  const achatsP = filterByShop(ACHATS_DB).filter(a=>{
+    if(!a.date_achat) return false;
+    const d=new Date(a.date_achat);
+    if(period==='today'){ const d7=new Date(now); d7.setDate(d7.getDate()-6); return d>=d7; }
+    if(period==='month') return d.getMonth()===now.getMonth()&&d.getFullYear()===now.getFullYear();
+    return d.getFullYear()===now.getFullYear();
+  });
+  const coutP = achatsP.reduce((s,a)=>s+(a.cout_total||0),0);
+  const margePct = net>0 ? Math.round((net-coutP)/net*100) : 0;
+
   document.getElementById('dash-kpis').innerHTML=`
-    <div class="kcard"><div class="kl">CA — ${pL}</div><div class="kv">${fmt(ca)}</div><div class="kd kmu">${filtered.length} ventes</div></div>
+    <div class="kcard"><div class="kl">CA — ${pL}</div><div class="kv">${fmt(ca)}</div><div class="kd kmu">${filtered.length} vente${filtered.length>1?'s':''}</div></div>
     <div class="kcard"><div class="kl">Net encaissé</div><div class="kv">${fmt(net)}</div><div class="kd kmu">après commissions</div></div>
     <div class="kcard"><div class="kl">Stock disponible</div><div class="kv">${avail}</div><div class="kd kmu">articles</div></div>
-    <div class="kcard"><div class="kl">Sourcing actifs</div><div class="kv">${srcActives}</div><div class="kd ${srcActives>0?'kup':'kmu'}">en recherche</div></div>`;
+    <div class="kcard"><div class="kl">Marge — ${pL}</div><div class="kv" style="color:${margePct<0?'var(--red)':margePct<20?'var(--amber)':'var(--green)'}">${net>0?margePct+'%':'—'}</div><div class="kd ${margePct>=20?'kup':margePct<0?'kdn':'kmu'}">${net>0?'net − achats':'aucune vente'}</div></div>`;
 
   // ── Alertes ──
   const alertes = [];
@@ -3014,6 +3096,7 @@ function renderStock(){
   if(countEl){
     const hasFilter=document.getElementById('stock-search').value||document.getElementById('stock-marque-filter')?.value||document.getElementById('stock-cat').value||document.getElementById('stock-dormant-filter')?.value;
     countEl.textContent = hasFilter ? `${items.length} résultat${items.length>1?'s':''}` : '';
+    const rb=document.getElementById('stock-reset-btn'); if(rb) rb.style.display=hasFilter?'':'none';
   }
   const dormantSeuilLabel = dormantSeuil===30?'+30j':`+${dormantSeuil}j`;
 
@@ -3420,6 +3503,7 @@ function renderVentes(){
   if(countEl){
     const hasFilter=fq||fc||fs||(fp&&fp!=='month');
     countEl.textContent = hasFilter ? `${list.length} résultat${list.length>1?'s':''}` : '';
+    const rb=document.getElementById('ventes-reset-btn'); if(rb) rb.style.display=hasFilter?'':'none';
   }
 
   document.getElementById('ventes-kpis').innerHTML=`
@@ -3692,9 +3776,9 @@ function openClientProfile(id){
       <div>
         <div class="panel"><div class="ph"><div class="pt">Historique</div></div>
           <div style="padding:0 4px">${ventes.length?ventes.map(v=>`
-            <div style="display:flex;align-items:flex-start;gap:9px;padding:9px 15px;border-bottom:.5px solid var(--border)">
+            <div onclick="nav('ventes',document.querySelector('[data-sec=ventes]'));setTimeout(()=>editVente('${v.id}'),120)" style="display:flex;align-items:flex-start;gap:9px;padding:9px 15px;border-bottom:.5px solid var(--border);cursor:pointer;transition:background .12s" onmouseover="this.style.background='var(--accent-bg)'" onmouseout="this.style.background=''">
               <div style="width:7px;height:7px;border-radius:50%;margin-top:4px;flex-shrink:0;background:${v.canal==='Vinted'?'var(--vint-txt)':v.canal==='Vestiaire'?'var(--vest-txt)':'var(--accent)'}"></div>
-              <div style="flex:1"><div style="font-size:13px;font-weight:500">${v.article}</div><div style="font-size:11px;color:var(--ink-40);margin-top:1px">${fmtD(v.date)} · ${canalBadge(v.canal)} · ${statutBadge(v.statut)}</div></div>
+              <div style="flex:1"><div style="font-size:13px;font-weight:500">${escHtml(v.article)}</div><div style="font-size:11px;color:var(--ink-40);margin-top:1px">${fmtD(v.date)} · ${canalBadge(v.canal)} · ${statutBadge(v.statut)}</div></div>
               <div style="font-size:13px;font-weight:500;flex-shrink:0">${fmt(v.montant)}</div>
             </div>`).join(''):`<div class="empty"><div class="empty-text">Aucun achat</div></div>`}
           </div>
@@ -3746,6 +3830,18 @@ function editClientFromProfile(id){
   document.getElementById('c-priv-zone').style.display=c.canal==='Privé'?'':'none';
   openModal('m-client');
 }
+function resetStockFilters(){
+  const ids=['stock-search','stock-marque-filter','stock-cat','stock-dormant-filter'];
+  ids.forEach(id=>{ const el=document.getElementById(id); if(el) el.value=''; });
+  renderStock();
+}
+
+function resetVentesFilters(){
+  const ids=['v-search','v-filter-canal','v-filter-statut','v-filter-periode'];
+  ids.forEach(id=>{ const el=document.getElementById(id); if(el) el.value=''; });
+  renderVentes();
+}
+
 function escHtml(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 
 function renderClientNotes(notes){
@@ -3860,14 +3956,14 @@ function buildInvoiceHTML(f){
   return `<div class="inv-preview">
     <div style="display:flex;justify-content:space-between;margin-bottom:22px">
       <div><div class="inv-title">FACTURE</div><div style="font-size:11px;color:var(--ink-40)">N° ${f.numero}</div><div style="font-size:11px;color:var(--ink-40)">Date : ${fmtD(f.date_emission)}</div><div style="font-size:11px;color:var(--ink-40)">Échéance : ${fmtD(f.date_echeance)}</div></div>
-      <div style="text-align:right"><div style="font-family:'Cormorant Garamond',serif;font-size:16px">${shop.name||'—'}</div>${shop.forme?`<div style="font-size:11px;color:var(--ink-40)">${shop.forme}</div>`:''} ${shop.siret?`<div style="font-size:11px;color:var(--ink-40)">SIRET : ${shop.siret}</div>`:''} ${shop.tva_number?`<div style="font-size:11px;color:var(--ink-40)">TVA : ${shop.tva_number}</div>`:''} ${shop.address?`<div style="font-size:11px;color:var(--ink-40)">${shop.address}</div>`:''} ${shop.email?`<div style="font-size:11px;color:var(--ink-40)">${shop.email}</div>`:''}</div>
+      <div style="text-align:right"><div style="font-family:'Cormorant Garamond',serif;font-size:16px">${escHtml(shop.name||'—')}</div>${shop.forme?`<div style="font-size:11px;color:var(--ink-40)">${escHtml(shop.forme)}</div>`:''} ${shop.siret?`<div style="font-size:11px;color:var(--ink-40)">SIRET : ${escHtml(shop.siret)}</div>`:''} ${shop.tva_number?`<div style="font-size:11px;color:var(--ink-40)">TVA : ${escHtml(shop.tva_number)}</div>`:''} ${shop.address?`<div style="font-size:11px;color:var(--ink-40)">${escHtml(shop.address)}</div>`:''} ${shop.email?`<div style="font-size:11px;color:var(--ink-40)">${escHtml(shop.email)}</div>`:''}</div>
     </div>
     <div style="margin-bottom:14px"><div style="font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-40);margin-bottom:3px">Facturer à</div>
-      <div style="font-weight:500">${client.prenom||''} ${client.nom||''}</div>
-      ${client.email?`<div style="font-size:12px;color:var(--ink-40)">${client.email}</div>`:''}
+      <div style="font-weight:500">${escHtml((client.prenom||'')+' '+(client.nom||''))}</div>
+      ${client.email?`<div style="font-size:12px;color:var(--ink-40)">${escHtml(client.email)}</div>`:''}
     </div>
     <table class="inv-table"><thead><tr><th style="width:50%">Description</th><th style="text-align:right">Montant HT</th><th style="text-align:right">TVA ${f.tva_rate}%</th><th style="text-align:right">TTC</th></tr></thead>
-      <tbody><tr><td>${f.objet||'Vente article luxe'}</td><td style="text-align:right">${fmt(f.montant_ht)}</td><td style="text-align:right">${fmt(f.tva_amount)}</td><td style="text-align:right;font-weight:500">${fmt(f.montant_ttc)}</td></tr></tbody>
+      <tbody><tr><td>${escHtml(f.objet||'Vente article luxe')}</td><td style="text-align:right">${fmt(f.montant_ht)}</td><td style="text-align:right">${fmt(f.tva_amount)}</td><td style="text-align:right;font-weight:500">${fmt(f.montant_ttc)}</td></tr></tbody>
     </table>
     <div style="text-align:right;margin-top:10px">
       <div style="display:inline-block;border-top:2px solid var(--accent);padding-top:7px;min-width:190px">
@@ -4244,16 +4340,16 @@ function renderReseau(){
         <div style="display:flex;align-items:flex-start;gap:10px;margin-bottom:10px">
           <div style="width:36px;height:36px;border-radius:50%;background:var(--accent-bg);border:.5px solid var(--accent-border);display:flex;align-items:center;justify-content:center;font-family:'Cormorant Garamond',serif;font-size:15px;color:var(--accent);flex-shrink:0">${initials}</div>
           <div style="flex:1;min-width:0">
-            <div style="font-weight:500;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${[r.prenom,r.nom].filter(Boolean).join(' ')||r.societe||'—'}</div>
-            ${r.societe&&(r.prenom||r.nom)?`<div style="font-size:11px;color:var(--ink-40)">${r.societe}</div>`:''}
+            <div style="font-weight:500;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escHtml([r.prenom,r.nom].filter(Boolean).join(' ')||r.societe||'—')}</div>
+            ${r.societe&&(r.prenom||r.nom)?`<div style="font-size:11px;color:var(--ink-40)">${escHtml(r.societe)}</div>`:''}
           </div>
           <div style="text-align:right;flex-shrink:0">
-            <span class="badge ${RZ_TYPE_COLORS[r.type]||'bw'}" style="font-size:9px">${r.type}</span>
+            <span class="badge ${RZ_TYPE_COLORS[r.type]||'bw'}" style="font-size:9px">${escHtml(r.type)}</span>
             <div style="font-size:11px;color:${r.fiabilite>=4?'var(--green)':r.fiabilite<=2?'var(--red)':'var(--amber)'};margin-top:3px">${'★'.repeat(r.fiabilite||3)}${'☆'.repeat(5-(r.fiabilite||3))}</div>
           </div>
         </div>
-        ${r.ville||r.pays?`<div style="font-size:11px;color:var(--ink-40);margin-bottom:7px">📍 ${[r.ville,r.pays].filter(Boolean).join(', ')}</div>`:''}
-        ${marques.length?`<div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:7px">${marques.map(m=>`<span style="background:var(--accent-bg);color:var(--accent);border:.5px solid var(--accent-border);border-radius:4px;padding:1px 6px;font-size:10px">${m}</span>`).join('')}</div>`:''}
+        ${r.ville||r.pays?`<div style="font-size:11px;color:var(--ink-40);margin-bottom:7px">📍 ${escHtml([r.ville,r.pays].filter(Boolean).join(', '))}</div>`:''}
+        ${marques.length?`<div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:7px">${marques.map(m=>`<span style="background:var(--accent-bg);color:var(--accent);border:.5px solid var(--accent-border);border-radius:4px;padding:1px 6px;font-size:10px">${escHtml(m)}</span>`).join('')}</div>`:''}
         <div style="display:flex;gap:8px;margin-bottom:8px">
           ${r.telephone?`<a href="tel:${r.telephone}" onclick="event.stopPropagation()" style="font-size:10px;color:var(--ink-40);text-decoration:none">📞 ${r.telephone}</a>`:''}
           ${r.instagram?`<a href="https://instagram.com/${r.instagram.replace('@','')}" target="_blank" onclick="event.stopPropagation()" style="font-size:10px;color:var(--accent);text-decoration:none">IG ${r.instagram}</a>`:''}
@@ -4553,12 +4649,12 @@ function renderPS(){
         const cl = CLIENTS.find(c=>c.id===p.client_id);
         return `<tr onclick="editPS('${p.id}')">
           <td>
-            <div style="font-weight:500">${p.titre||'—'}</div>
-            <div style="font-size:11px;color:var(--ink-40)">${p.ville||p.lieux||'—'}</div>
+            <div style="font-weight:500">${escHtml(p.titre||'—')}</div>
+            <div style="font-size:11px;color:var(--ink-40)">${escHtml(p.ville||p.lieux||'—')}</div>
           </td>
-          <td style="font-size:12px">${cl?`${cl.prenom} ${cl.nom}`:'—'}</td>
-          <td style="font-size:11px;color:var(--ink-40)">${p.type||'—'}</td>
-          <td style="font-size:11px;color:var(--ink-40)">${p.lieux||'—'}</td>
+          <td style="font-size:12px">${cl?escHtml(`${cl.prenom} ${cl.nom}`):'—'}</td>
+          <td style="font-size:11px;color:var(--ink-40)">${escHtml(p.type||'—')}</td>
+          <td style="font-size:11px;color:var(--ink-40)">${escHtml(p.lieux||'—')}</td>
           <td class="tnum">${p.budget?fmt(p.budget):'—'}</td>
           <td class="tnum" style="font-weight:500">${p.montant_achete?fmt(p.montant_achete):'—'}</td>
           <td class="tnum" style="color:var(--green);font-weight:500">${p.commission?fmt(p.commission):'—'}</td>
@@ -4798,10 +4894,10 @@ function renderSourcing(){
         const overdue = s.echeance && new Date(s.echeance)<new Date() && !['Acheté','Annulé'].includes(s.statut);
         return `<tr onclick="editSourcing('${s.id}')">
           <td>
-            <div style="font-weight:500">${s.marque} ${s.modele}</div>
-            <div style="font-size:11px;color:var(--ink-40)">${[s.couleur,s.taille].filter(Boolean).join(' · ')||'—'}</div>
+            <div style="font-weight:500">${escHtml(s.marque)} ${escHtml(s.modele)}</div>
+            <div style="font-size:11px;color:var(--ink-40)">${[s.couleur,s.taille].filter(Boolean).map(escHtml).join(' · ')||'—'}</div>
           </td>
-          <td style="font-size:12px">${cl?`${cl.prenom} ${cl.nom}`:'—'}</td>
+          <td style="font-size:12px">${cl?escHtml(`${cl.prenom} ${cl.nom}`):'—'}</td>
           <td class="tnum" style="font-weight:500">${s.budget?fmt(s.budget):'—'}</td>
           <td><span style="font-size:11px;font-weight:500;color:${SRC_URGENCE_COLORS[s.urgence]||'var(--ink-40)'}">${s.urgence||'—'}</span></td>
           <td style="font-size:11px;color:var(--ink-40)">${s.sources||'—'}</td>
@@ -4956,9 +5052,9 @@ function renderRecettes(){
       const cl=CLIENTS.find(c=>c.id===v.client_id);
       return `<tr>
         <td style="color:var(--ink-40);font-size:12px">${fmtD(v.date)}</td>
-        <td style="font-weight:500">${v.article}</td>
+        <td style="font-weight:500">${escHtml(v.article)}</td>
         <td>${canalBadge(v.canal)}</td>
-        <td style="font-size:12px;color:var(--ink-40)">${cl?`${cl.prenom} ${cl.nom}`:v.pseudo||'—'}</td>
+        <td style="font-size:12px;color:var(--ink-40)">${cl?escHtml(`${cl.prenom} ${cl.nom}`):escHtml(v.pseudo||'—')}</td>
         <td class="tnum">${fmt(v.montant)}</td>
         <td class="tnum" style="color:var(--red)">${v.commission?fmt(v.commission):'—'}</td>
         <td class="tnum" style="font-weight:500;color:var(--green)">${fmt(v.net||v.montant)}</td>
@@ -4969,9 +5065,9 @@ function renderRecettes(){
       const cl=CLIENTS.find(c=>c.id===p.client_id);
       return `<tr style="background:var(--green-bg)">
         <td style="color:var(--ink-40);font-size:12px">${fmtD(p.date_livraison||p.date_mission)}</td>
-        <td style="font-weight:500">${p.titre||'Mission PS'}</td>
+        <td style="font-weight:500">${escHtml(p.titre||'Mission PS')}</td>
         <td><span class="badge bs">Personal Shopping</span></td>
-        <td style="font-size:12px;color:var(--ink-40)">${cl?`${cl.prenom} ${cl.nom}`:'—'}</td>
+        <td style="font-size:12px;color:var(--ink-40)">${cl?escHtml(`${cl.prenom} ${cl.nom}`):'—'}</td>
         <td class="tnum">—</td><td class="tnum">—</td>
         <td class="tnum" style="font-weight:500;color:var(--green)">${fmt(p.commission)}</td>
         <td><span class="badge bp">Livrée</span></td>
@@ -4981,9 +5077,9 @@ function renderRecettes(){
       const cl=CLIENTS.find(c=>c.id===s.client_id);
       return `<tr style="background:var(--blue-bg)">
         <td style="color:var(--ink-40);font-size:12px">${fmtD(s.updated_at)}</td>
-        <td style="font-weight:500">${s.marque} ${s.modele}</td>
+        <td style="font-weight:500">${escHtml(s.marque)} ${escHtml(s.modele)}</td>
         <td><span class="badge bw">Sourcing</span></td>
-        <td style="font-size:12px;color:var(--ink-40)">${cl?`${cl.prenom} ${cl.nom}`:'—'}</td>
+        <td style="font-size:12px;color:var(--ink-40)">${cl?escHtml(`${cl.prenom} ${cl.nom}`):'—'}</td>
         <td class="tnum">—</td><td class="tnum">—</td>
         <td class="tnum" style="font-weight:500;color:var(--blue)">${fmt(parseFloat(s.commission))}</td>
         <td><span class="badge bp">Acheté</span></td>
@@ -5020,7 +5116,7 @@ function renderMarges(){
   const sorted=[...enriched].sort((a,b)=>b.pct-a.pct);
   document.getElementById('marges-tbody').innerHTML=sorted.length
     ?sorted.map(v=>`<tr>
-        <td style="font-weight:500">${v.article}</td>
+        <td style="font-weight:500">${escHtml(v.article)}</td>
         <td>${canalBadge(v.canal)}</td>
         <td class="tnum" style="color:var(--amber)">${v.cout?fmt(v.cout):'—'}</td>
         <td class="tnum">${fmt(v.net)}</td>
@@ -5031,13 +5127,13 @@ function renderMarges(){
 
   // Par catégorie
   const byCat={};
-  enriched.forEach(v=>{ const a=STOCK.find(x=>x.id===v.stock_id); const cat=a?.categorie||'Autre'; if(!byCat[cat]) byCat[cat]={ca:0,cout:0,nb:0}; byCat[cat].ca+=v.net; byCat[cat].cout+=v.cout; byCat[cat].nb++; });
+  enriched.forEach(v=>{ const a=STOCK.find(x=>x.id===v.stock_id); const cat=escHtml(a?.categorie||'Autre'); if(!byCat[cat]) byCat[cat]={ca:0,cout:0,nb:0}; byCat[cat].ca+=v.net; byCat[cat].cout+=v.cout; byCat[cat].nb++; });
   const catEl=document.getElementById('marges-cat-chart');
   if(catEl){ const cats=Object.entries(byCat).sort((a,b)=>(b[1].ca-b[1].cout)-(a[1].ca-a[1].cout));
     catEl.innerHTML=cats.length?cats.map(([cat,d])=>{ const m=d.ca>0?Math.round((d.ca-d.cout)/d.ca*100):0; return `<div style="display:flex;align-items:center;gap:9px;padding:8px 0;border-bottom:.5px solid var(--border)"><div style="flex:1;font-size:13px">${cat}</div><div style="font-size:11px;color:var(--ink-40)">${d.nb}v</div><div style="width:70px;height:5px;background:var(--ink-12);border-radius:3px;overflow:hidden"><div style="height:100%;width:${Math.min(100,Math.max(0,m))}%;background:${m<15?'var(--red)':m<30?'var(--amber)':'var(--green)'};border-radius:3px"></div></div><div style="font-size:12px;font-weight:500;min-width:32px;text-align:right;color:${m<15?'var(--red)':m<30?'var(--amber)':'var(--green)'}">${m}%</div></div>`; }).join(''):`<div class="empty" style="padding:16px"><div class="empty-text">Aucune donnée</div></div>`; }
 
   const topEl=document.getElementById('marges-top-list');
-  if(topEl){ topEl.innerHTML=sorted.slice(0,3).map((v,i)=>`<div style="display:flex;align-items:center;gap:9px;padding:9px 16px;border-bottom:.5px solid var(--border)"><div style="width:20px;height:20px;border-radius:50%;background:var(--accent-bg);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:500;color:var(--accent)">${i+1}</div><div style="flex:1"><div style="font-size:13px;font-weight:500">${v.article}</div><div style="font-size:11px;color:var(--ink-40)">${fmtD(v.date)}</div></div><div style="text-align:right"><div style="font-weight:500;color:var(--green)">${fmt(v.marge)}</div><div style="font-size:11px;color:var(--green)">${v.pct}%</div></div></div>`).join('')||`<div class="empty" style="padding:16px"><div class="empty-text">Aucune donnée</div></div>`; }
+  if(topEl){ topEl.innerHTML=sorted.slice(0,3).map((v,i)=>`<div style="display:flex;align-items:center;gap:9px;padding:9px 16px;border-bottom:.5px solid var(--border)"><div style="width:20px;height:20px;border-radius:50%;background:var(--accent-bg);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:500;color:var(--accent)">${i+1}</div><div style="flex:1"><div style="font-size:13px;font-weight:500">${escHtml(v.article)}</div><div style="font-size:11px;color:var(--ink-40)">${fmtD(v.date)}</div></div><div style="text-align:right"><div style="font-weight:500;color:var(--green)">${fmt(v.marge)}</div><div style="font-size:11px;color:var(--green)">${v.pct}%</div></div></div>`).join('')||`<div class="empty" style="padding:16px"><div class="empty-text">Aucune donnée</div></div>`; }
 }
 
 function renderTVA(){
@@ -5164,7 +5260,7 @@ function showAuth(){
 async function boot(){
   // Restaurer le thème sauvegardé
   const savedTheme = localStorage.getItem('marlo-theme');
-  if(savedTheme && ['t1','t2','t3','t4'].includes(savedTheme)) setTheme(savedTheme);
+  if(savedTheme && ALL_THEMES.includes(savedTheme)) setTheme(savedTheme);
   // Point connexion — orange par défaut jusqu'à confirmation
   setConnStatus('offline');
   try {
